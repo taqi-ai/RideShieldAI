@@ -1,0 +1,149 @@
+QMainWindow {
+    background-color: #0A0A0E;
+    color: #FFFFFF;
+}
+
+QWidget {
+    color: #E0E0E0;
+    font-family: 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* Sidebar */
+#sidebar {
+    background-color: #121218;
+    border-right: 1px solid #20202A;
+}
+
+QPushButton.nav-button {
+    background-color: transparent;
+    border: none;
+    padding: 15px 20px;
+    font-size: 16px;
+    text-align: left;
+    color: #A0A0B0;
+    border-left: 4px solid transparent;
+}
+
+QPushButton.nav-button:hover {
+    background-color: #1E1E28;
+    color: #FFFFFF;
+}
+
+QPushButton.nav-button:checked {
+    background-color: #1E1E28;
+    color: #00E5FF;
+    border-left: 4px solid #00E5FF;
+    font-weight: bold;
+}
+
+/* Generic Push Buttons */
+QPushButton.action-button {
+    background-color: #00E5FF;
+    color: #0A0A0E;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+QPushButton.action-button:hover {
+    background-color: #33EBFF;
+}
+
+/* Cards (using object name or class if possible) */
+QWidget.glass-card, QFrame.glass-card {
+    background-color: rgba(30, 30, 40, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+/* Alert States */
+QWidget.alert-card-active, QFrame.alert-card-active {
+    background-color: rgba(255, 0, 0, 0.15);
+    border: 2px solid #FF3333;
+    border-radius: 12px;
+}
+
+/* Typography */
+QLabel.h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #FFFFFF;
+}
+
+QLabel.h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #00E5FF;
+}
+
+QLabel.value-large {
+    font-size: 48px;
+    font-weight: bold;
+    color: #FFFFFF;
+}
+
+QLabel.value-medium {
+    font-size: 32px;
+    font-weight: bold;
+    color: #FFFFFF;
+}
+
+QLabel.info-text {
+    font-size: 14px;
+    color: #A0A0B0;
+}
+
+QLabel.alert-text {
+    font-size: 36px;
+    font-weight: bold;
+    color: #FF3333;
+}
+
+/* Tables */
+QTableWidget {
+    background-color: #121218;
+    alternate-background-color: #1A1A22;
+    border: 1px solid #20202A;
+    gridline-color: #20202A;
+    color: #E0E0E0;
+    selection-background-color: #1E1E28;
+    selection-color: #00E5FF;
+}
+
+QHeaderView::section {
+    background-color: #0A0A0E;
+    color: #00E5FF;
+    padding: 8px;
+    border: 1px solid #20202A;
+    font-weight: bold;
+}
+
+/* Combobox & Sliders */
+QComboBox {
+    background-color: #1E1E28;
+    border: 1px solid #20202A;
+    border-radius: 4px;
+    padding: 5px 10px;
+    color: #FFFFFF;
+}
+
+QComboBox::drop-down {
+    border: none;
+}
+
+QSlider::groove:horizontal {
+    border: 1px solid #20202A;
+    height: 8px;
+    background: #121218;
+    border-radius: 4px;
+}
+
+QSlider::handle:horizontal {
+    background: #00E5FF;
+    border: 1px solid #00E5FF;
+    width: 18px;
+    margin: -5px 0;
+    border-radius: 9px;
+}
