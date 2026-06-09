@@ -1,67 +1,35 @@
 QMainWindow {
-    background-color: #0A0A0E;
+    background-color: #05070A;
     color: #FFFFFF;
 }
 
 QWidget {
-    color: #E0E0E0;
+    color: #FFFFFF;
     font-family: 'Segoe UI', 'Inter', sans-serif;
 }
 
-/* Sidebar */
-#sidebar {
-    background-color: #121218;
-    border-right: 1px solid #20202A;
-}
-
-QPushButton.nav-button {
-    background-color: transparent;
-    border: none;
-    padding: 15px 20px;
-    font-size: 16px;
-    text-align: left;
-    color: #A0A0B0;
-    border-left: 4px solid transparent;
-}
-
-QPushButton.nav-button:hover {
-    background-color: #1E1E28;
-    color: #FFFFFF;
-}
-
-QPushButton.nav-button:checked {
-    background-color: #1E1E28;
-    color: #00E5FF;
-    border-left: 4px solid #00E5FF;
-    font-weight: bold;
-}
-
-/* Generic Push Buttons */
-QPushButton.action-button {
-    background-color: #00E5FF;
-    color: #0A0A0E;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-QPushButton.action-button:hover {
-    background-color: #33EBFF;
-}
-
-/* Cards (using object name or class if possible) */
+/* Glassmorphism Cards */
 QWidget.glass-card, QFrame.glass-card {
-    background-color: rgba(30, 30, 40, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(10, 15, 25, 0.6);
+    border: 1px solid rgba(0, 229, 255, 0.2);
     border-radius: 12px;
+}
+
+QWidget.glass-card:hover, QFrame.glass-card:hover {
+    background-color: rgba(15, 25, 40, 0.8);
+    border: 1px solid rgba(0, 229, 255, 0.5);
 }
 
 /* Alert States */
 QWidget.alert-card-active, QFrame.alert-card-active {
-    background-color: rgba(255, 0, 0, 0.15);
+    background-color: rgba(255, 51, 51, 0.15);
     border: 2px solid #FF3333;
+    border-radius: 12px;
+}
+
+QWidget.safe-card-active, QFrame.safe-card-active {
+    background-color: rgba(57, 255, 20, 0.1);
+    border: 2px solid #39FF14;
     border-radius: 12px;
 }
 
@@ -74,12 +42,18 @@ QLabel.h1 {
 
 QLabel.h2 {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: bold;
+    color: #00E5FF;
+}
+
+QLabel.h3 {
+    font-size: 16px;
+    font-weight: bold;
     color: #00E5FF;
 }
 
 QLabel.value-large {
-    font-size: 48px;
+    font-size: 72px;
     font-weight: bold;
     color: #FFFFFF;
 }
@@ -96,54 +70,60 @@ QLabel.info-text {
 }
 
 QLabel.alert-text {
-    font-size: 36px;
+    font-size: 24px;
     font-weight: bold;
     color: #FF3333;
 }
 
-/* Tables */
-QTableWidget {
-    background-color: #121218;
-    alternate-background-color: #1A1A22;
-    border: 1px solid #20202A;
-    gridline-color: #20202A;
-    color: #E0E0E0;
-    selection-background-color: #1E1E28;
-    selection-color: #00E5FF;
-}
-
-QHeaderView::section {
-    background-color: #0A0A0E;
-    color: #00E5FF;
-    padding: 8px;
-    border: 1px solid #20202A;
+QLabel.safe-text {
+    font-size: 24px;
     font-weight: bold;
+    color: #39FF14;
 }
 
-/* Combobox & Sliders */
-QComboBox {
-    background-color: #1E1E28;
-    border: 1px solid #20202A;
-    border-radius: 4px;
-    padding: 5px 10px;
+QLabel.gear-text {
+    font-size: 80px;
+    font-weight: bold;
+    color: #FFFFFF;
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px 30px;
+}
+
+/* Bottom Navigation Bar */
+#bottom-nav {
+    background-color: rgba(5, 7, 10, 0.8);
+    border-top: 1px solid rgba(0, 229, 255, 0.3);
+}
+
+QPushButton.nav-button {
+    background-color: transparent;
+    border: none;
+    padding: 15px 0px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #A0A0B0;
+    border-top: 4px solid transparent;
+}
+
+QPushButton.nav-button:hover {
     color: #FFFFFF;
 }
 
-QComboBox::drop-down {
-    border: none;
+QPushButton.nav-button:checked {
+    color: #00E5FF;
+    border-top: 4px solid #00E5FF;
 }
 
-QSlider::groove:horizontal {
-    border: 1px solid #20202A;
-    height: 8px;
-    background: #121218;
-    border-radius: 4px;
+QPushButton.nav-button[alert_mode="true"]:checked {
+    color: #FF3333;
+    border-top: 4px solid #FF3333;
 }
 
-QSlider::handle:horizontal {
-    background: #00E5FF;
-    border: 1px solid #00E5FF;
-    width: 18px;
-    margin: -5px 0;
-    border-radius: 9px;
+/* Camera Frame */
+QFrame#camera-frame {
+    border: 2px solid #FF3333;
+    border-radius: 15px;
+    background-color: #000000;
 }

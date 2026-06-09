@@ -1,7 +1,7 @@
 import os
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QStackedWidget, QLabel, QFrame)
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt
 from src.ai_engine import AIEngine
 from src.alert_system import AlertSystem
 
@@ -16,7 +16,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("RideShield AI")
-        self.setMinimumSize(1280, 720)
+        self.setMinimumSize(1920, 1080)
+        self.showFullScreen() # Fullscreen for TFT dashboard feel
         
         # Core components
         model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "helmet_yolo26n.pt"))
@@ -35,50 +36,15 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        main_layout = QHBoxLayout(central_widget)
+        main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # Sidebar
-        self.sidebar = QFrame()
-        self.sidebar.setObjectName("sidebar")
-        self.sidebar.setFixedWidth(250)
-        sidebar_layout = QVBoxLayout(self.sidebar)
-        sidebar_layout.setContentsMargins(0, 20, 0, 20)
-        
-        title_label = QLabel("RideShield AI")
-        title_label.setProperty("class", "h1")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        sidebar_layout.addWidget(title_label)
-        sidebar_layout.addSpacing(30)
-        
-        self.nav_buttons = []
-        pages_info = [
-            ("Dashboard", 0),
-            ("Live AI Monitor", 1),
-            ("Analytics", 2),
-            ("Event History", 3),
-            ("Settings", 4),
-            ("System Diagnostics", 5)
-        ]
-        
         self.stacked_widget = QStackedWidget()
-        
-        for name, index in pages_info:
-            btn = QPushButton(name)
-            btn.setProperty("class", "nav-button")
-            btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, idx=index: self.switch_page(idx))
-            sidebar_layout.addWidget(btn)
-            self.nav_buttons.append(btn)
-            
-        sidebar_layout.addStretch()
-        
-        main_layout.addWidget(self.sidebar)
-        main_layout.addWidget(self.stacked_widget)
+        main_layout.addWidget(self.stacked_widget, stretch=1)
         
         # Initialize pages
-        self.dashboard_page = DashboardPage(main_window=self)
+        self.dashboard_page = DashboardPage(self.ai_engine, self.alert_system, main_window=self)
         self.live_monitor_page = LiveMonitorPage(ai_engine=self.ai_engine, alert_system=self.alert_system)
         self.analytics_page = AnalyticsPage()
         self.event_history_page = EventHistoryPage()
@@ -91,6 +57,38 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.event_history_page)
         self.stacked_widget.addWidget(self.settings_page)
         self.stacked_widget.addWidget(self.system_diagnostics_page)
+
+        # Bottom Navigation Bar
+        self.bottom_nav = QFrame()
+        self.bottom_nav.setObjectName("bottom-nav")
+        self.bottom_nav.setFixedHeight(80)
+        nav_layout = QHBoxLayout(self.bottom_nav)
+        nav_layout.setContentsMargins(50, 0, 50, 0)
+        nav_layout.setSpacing(20)
+        
+        self.nav_buttons = []
+        pages_info = [
+            ("Dashboard", 0),
+            ("AI Monitor", 1),
+            ("Analytics", 2),
+            ("History", 3),
+            ("Settings", 4),
+            ("Diagnostics", 5)
+        ]
+        
+        nav_layout.addStretch()
+        for name, index in pages_info:
+            btn = QPushButton(name)
+            btn.setProperty("class", "nav-button")
+            btn.setCheckable(True)
+            btn.setFixedWidth(150)
+            btn.clicked.connect(lambda checked, idx=index: self.switch_page(idx))
+            nav_layout.addWidget(btn)
+            self.nav_buttons.append(btn)
+            
+        nav_layout.addStretch()
+        
+        main_layout.addWidget(self.bottom_nav)
             
         # Select first page
         self.switch_page(0)
@@ -99,6 +97,20 @@ class MainWindow(QMainWindow):
         self.stacked_widget.setCurrentIndex(index)
         for i, btn in enumerate(self.nav_buttons):
             btn.setChecked(i == index)
+
+    def set_alert_mode(self, is_alert):
+        if is_alert:
+            self.bottom_nav.setStyleSheet("border-top: 1px solid rgba(255, 51, 51, 0.5);")
+            for btn in self.nav_buttons:
+                btn.setProperty("alert_mode", "true")
+                btn.style().unpolish(btn)
+                btn.style().polish(btn)
+        else:
+            self.bottom_nav.setStyleSheet("")
+            for btn in self.nav_buttons:
+                btn.setProperty("alert_mode", "false")
+                btn.style().unpolish(btn)
+                btn.style().polish(btn)
 
     def apply_styles(self):
         style_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "styles.qss"))
@@ -111,3 +123,13 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.ai_engine.stop()
         event.accept()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            if self.isFullScreen():
+                self.showNormal()
+            else:
+                self.showFullScreen()
+        else:
+            super().keyPressEvent(event)
+
