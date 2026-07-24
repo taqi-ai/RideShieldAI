@@ -1,6 +1,7 @@
 import time
 from PyQt6.QtCore import QObject, pyqtSignal
 from src import database
+from src.audio_system import speaker
 
 class AlertSystem(QObject):
     # Signals
@@ -15,6 +16,7 @@ class AlertSystem(QObject):
         self.alert_delay = 5 # seconds, default
         self.safety_mode = "Monitor Only"
         self.last_logged_event_time = 0
+        self.last_helmet_state = None
         
         # Load settings
         self.load_settings()
@@ -30,6 +32,14 @@ class AlertSystem(QObject):
         confidence = stats.get("confidence", 0.0)
         
         current_time = time.time()
+
+        # Handle speech on helmet state transition
+        if self.last_helmet_state != helmet_detected:
+            self.last_helmet_state = helmet_detected
+            if helmet_detected:
+                speaker.speak("Helmet detected. Now you can ride the bike.")
+            else:
+                speaker.speak("Please wear helmet.")
         
         if not helmet_detected:
             if self.no_helmet_start_time is None:
@@ -77,3 +87,4 @@ class AlertSystem(QObject):
     def clear_alert(self):
         self.is_alert_active = False
         self.alert_cleared.emit()
+

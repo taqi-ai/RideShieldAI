@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
         self.nav_buttons = []
         pages_info = [
             ("DASHBOARD", 0),
-            ("AI MONITOR", 1),
+            ("CAMERA", 1),
             ("ANALYTICS", 2),
             ("HISTORY", 3),
             ("SETTINGS", 4)
@@ -157,10 +157,20 @@ class MainWindow(QMainWindow):
                 self.showNormal()
             else:
                 self.showFullScreen()
+        elif event.key() in (Qt.Key.Key_W, Qt.Key.Key_Up):
+            if hasattr(self, 'dashboard_page'):
+                self.dashboard_page.manual_accelerate()
+        elif event.key() in (Qt.Key.Key_S, Qt.Key.Key_Down):
+            if hasattr(self, 'dashboard_page'):
+                self.dashboard_page.manual_brake()
+        elif event.key() == Qt.Key.Key_Space:
+            if hasattr(self, 'dashboard_page'):
+                self.dashboard_page.manual_idle()
         else:
             super().keyPressEvent(event)
             
     @pyqtSlot(QImage)
     def cache_image(self, qimg):
         self.latest_image = qimg
+
 
