@@ -1,7 +1,7 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QFrame, QGridLayout)
-from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtGui import QImage, QPixmap
+import os
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout)
+from PyQt6.QtCore import Qt, pyqtSlot, QTimer
+from PyQt6.QtGui import QImage, QPixmap, QColor, QPainter, QFont
 
 class LiveMonitorPage(QWidget):
     def __init__(self, ai_engine, alert_system, parent=None):
@@ -15,66 +15,105 @@ class LiveMonitorPage(QWidget):
             self.ai_engine.image_update.connect(self.update_image)
             self.ai_engine.stats_update.connect(self.update_stats)
             
-        if self.alert_system:
-            self.alert_system.alert_triggered.connect(self.show_alert)
-            self.alert_system.alert_cleared.connect(self.hide_alert)
+        self.blink_state = True
+        self.blink_timer = QTimer(self)
+        self.blink_timer.timeout.connect(self.toggle_blink)
+        self.blink_timer.start(500)
+
+    def toggle_blink(self):
+        self.blink_state = not self.blink_state
+        if self.blink_state:
+            self.live_indicator.setStyleSheet("color: #FF3333; font-size: 24px; font-weight: bold; background-color: transparent;")
+        else:
+            self.live_indicator.setStyleSheet("color: rgba(255,51,51,0.5); font-size: 24px; font-weight: bold; background-color: transparent;")
+        self.live_indicator.adjustSize()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(40, 20, 40, 20)
+        main_layout.setSpacing(20)
         
-        # Title
-        title = QLabel("Live AI Monitor")
-        title.setProperty("class", "h2")
-        layout.addWidget(title)
+        # --- Top Area: Video Feed (70%) ---
+        self.video_container = QFrame()
+        self.video_container.setStyleSheet("background-color: #0A0A0E; border: 2px solid #20202A; border-radius: 12px;")
+        video_layout = QVBoxLayout(self.video_container)
+        video_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Alert Banner
-        self.alert_banner = QLabel("NO HELMET DETECTED - ALERT ACTIVE")
-        self.alert_banner.setProperty("class", "alert-banner")
-        self.alert_banner.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.alert_banner.setStyleSheet("background-color: #F44336; color: white; padding: 10px; font-weight: bold; border-radius: 5px;")
-        self.alert_banner.hide()
-        layout.addWidget(self.alert_banner)
-        
-        # Main content area
-        content_layout = QHBoxLayout()
-        
-        # Video feed
-        self.video_label = QLabel("Camera Feed Initializing...")
+        self.video_label = QLabel("CAMERA FEED INITIALIZING...")
+        self.video_label.setProperty("class", "h2")
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.video_label.setMinimumSize(640, 480)
-        self.video_label.setStyleSheet("background-color: #000; border-radius: 8px;")
-        content_layout.addWidget(self.video_label, stretch=3)
+        video_layout.addWidget(self.video_label)
         
-        # Stats panel
-        stats_panel = QFrame()
-        stats_panel.setProperty("class", "card")
-        stats_layout = QVBoxLayout(stats_panel)
+        # Overlay LIVE indicator (using absolute positioning)
+        self.live_indicator = QLabel("● LIVE")
+        self.live_indicator.setStyleSheet("color: #FF3333; font-size: 24px; font-weight: bold; background-color: transparent;")
+        self.live_indicator.setParent(self.video_container)
+        self.live_indicator.adjustSize()
+        self.live_indicator.move(20, 20)
         
-        stats_title = QLabel("Real-time Analytics")
-        stats_title.setProperty("class", "h3")
-        stats_layout.addWidget(stats_title)
+        main_layout.addWidget(self.video_container, stretch=7)
         
-        self.helmet_status = QLabel("Helmet Status: Unknown")
-        self.fps_label = QLabel("FPS: 0.0")
-        self.inference_label = QLabel("Inference Time: 0.0 ms")
-        self.confidence_label = QLabel("Confidence: 0.0%")
+        # --- Bottom Area: Live Cards (30%) ---
+        cards_layout = QHBoxLayout()
+        cards_layout.setSpacing(20)
         
-        stats_layout.addWidget(self.helmet_status)
-        stats_layout.addWidget(self.fps_label)
-        stats_layout.addWidget(self.inference_label)
-        stats_layout.addWidget(self.confidence_label)
-        stats_layout.addStretch()
+        # 1. Helmet Status
+        self.status_card = QFrame()
+        self.status_card.setProperty("class", "glass-card safe-card-active")
+        status_lay = QVBoxLayout(self.status_card)
+        status_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl1 = QLabel("Helmet Status")
+        lbl1.setProperty("class", "info-text")
+        lbl1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status_val = QLabel("DETECTED")
+        self.status_val.setProperty("class", "safe-text")
+        self.status_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        status_lay.addWidget(lbl1)
+        status_lay.addWidget(self.status_val)
+        cards_layout.addWidget(self.status_card)
         
-        content_layout.addWidget(stats_panel, stretch=1)
+        def create_card(title, value_class):
+            card = QFrame()
+            card.setProperty("class", "glass-card")
+            lay = QVBoxLayout(card)
+            lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl_title = QLabel(title)
+            lbl_title.setProperty("class", "info-text")
+            lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl_val = QLabel("--")
+            lbl_val.setProperty("class", value_class)
+            lbl_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lay.addWidget(lbl_title)
+            lay.addWidget(lbl_val)
+            cards_layout.addWidget(card)
+            return lbl_val
+            
+        self.conf_val = create_card("Confidence", "h2")
+        self.fps_val = create_card("FPS", "h2")
+        self.infer_val = create_card("Inference Time", "h2")
         
-        layout.addLayout(content_layout)
+        # Model Name Card
+        model_name = "YOLO"
+        if self.ai_engine and hasattr(self.ai_engine, 'model_path'):
+            base = os.path.basename(self.ai_engine.model_path)
+            model_name = os.path.splitext(base)[0].upper()
+            
+        self.model_val = create_card("Current Model", "h2")
+        self.model_val.setText(model_name)
+        
+        main_layout.addLayout(cards_layout, stretch=2)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Keep LIVE indicator at top-left
+        self.live_indicator.move(20, 20)
 
     @pyqtSlot(QImage)
     def update_image(self, qimage):
         pixmap = QPixmap.fromImage(qimage)
-        # Scale pixmap to fit the label, keeping aspect ratio
-        scaled_pixmap = pixmap.scaled(self.video_label.size(), 
+        # Keep aspect ratio and fit inside the large container
+        scaled_pixmap = pixmap.scaled(self.video_container.width() - 4, 
+                                      self.video_container.height() - 4, 
                                       Qt.AspectRatioMode.KeepAspectRatio, 
                                       Qt.TransformationMode.SmoothTransformation)
         self.video_label.setPixmap(scaled_pixmap)
@@ -83,21 +122,20 @@ class LiveMonitorPage(QWidget):
     def update_stats(self, stats):
         helmet_detected = stats.get("helmet_detected", False)
         if helmet_detected:
-            self.helmet_status.setText("Helmet Status: Detected")
-            self.helmet_status.setStyleSheet("color: #4CAF50;") # Green
+            self.status_card.setProperty("class", "glass-card safe-card-active")
+            self.status_val.setText("DETECTED")
+            self.status_val.setProperty("class", "safe-text")
         else:
-            self.helmet_status.setText("Helmet Status: Not Detected")
-            self.helmet_status.setStyleSheet("color: #F44336;") # Red
+            self.status_card.setProperty("class", "glass-card alert-card-active")
+            self.status_val.setText("NOT DETECTED")
+            self.status_val.setProperty("class", "alert-text")
             
-        self.fps_label.setText(f"FPS: {stats.get('fps', 0):.1f}")
-        self.inference_label.setText(f"Inference Time: {stats.get('inference_time', 0):.1f} ms")
-        self.confidence_label.setText(f"Confidence: {stats.get('confidence', 0)*100:.1f}%")
-
-    @pyqtSlot(str)
-    def show_alert(self, msg):
-        self.alert_banner.setText(msg)
-        self.alert_banner.show()
-
-    @pyqtSlot()
-    def hide_alert(self):
-        self.alert_banner.hide()
+        # Ensure stylesheet refreshes dynamically
+        self.status_card.style().unpolish(self.status_card)
+        self.status_card.style().polish(self.status_card)
+        self.status_val.style().unpolish(self.status_val)
+        self.status_val.style().polish(self.status_val)
+            
+        self.fps_val.setText(f"{stats.get('fps', 0):.1f}")
+        self.infer_val.setText(f"{stats.get('inference_time', 0):.1f} ms")
+        self.conf_val.setText(f"{stats.get('confidence', 0)*100:.1f}%")

@@ -5,8 +5,9 @@ import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtGui import QImage
 from ultralytics import YOLO
+from src import database
 
-class AIEngine(QThread):
+class DetectionManager(QThread):
     # Signals
     # image_update: Emits the processed frame (QImage)
     image_update = pyqtSignal(QImage)
@@ -17,7 +18,10 @@ class AIEngine(QThread):
     #     "confidence": float,
     #     "fps": float,
     #     "inference_time": float,
-    #     "bboxes": list
+    #     "bboxes": list,
+    #     "total_detections": int,
+    #     "model_name": str,
+    #     "params": str
     # }
     stats_update = pyqtSignal(dict)
     
@@ -32,6 +36,9 @@ class AIEngine(QThread):
         self.model = None
         self.helmet_class_id = None
         self.confidence_threshold = 0.5
+        self.total_detections = 0
+        self.model_name = os.path.basename(model_path)
+        self.params = "Unknown"
         
     def load_model(self):
         try:
@@ -119,13 +126,24 @@ class AIEngine(QThread):
             fps = 1.0 / (current_time - prev_time) if (current_time - prev_time) > 0 else 0
             prev_time = current_time
 
+            self.total_detections += len(bboxes)
+
+            # Log to DB
+            detected_class = "Helmet" if helmet_detected else "No Helmet"
+            # Only log if confident enough, or just log everything? The prompt says "Every detection event must be logged"
+            if len(bboxes) > 0:
+                database.log_detection(helmet_detected, max_confidence, fps, inference_time, detected_class)
+
             # Prepare stats
             stats = {
                 "helmet_detected": helmet_detected,
                 "confidence": max_confidence,
                 "fps": fps,
                 "inference_time": inference_time,
-                "bboxes": bboxes
+                "bboxes": bboxes,
+                "total_detections": self.total_detections,
+                "model_name": self.model_name,
+                "params": self.params
             }
             
             self.stats_update.emit(stats)

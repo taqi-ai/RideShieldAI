@@ -7,8 +7,9 @@ class AlertSystem(QObject):
     alert_triggered = pyqtSignal(str) # Emits alert message
     alert_cleared = pyqtSignal()
     
-    def __init__(self):
+    def __init__(self, main_window=None):
         super().__init__()
+        self.main_window = main_window
         self.no_helmet_start_time = None
         self.is_alert_active = False
         self.alert_delay = 5 # seconds, default
@@ -48,17 +49,27 @@ class AlertSystem(QObject):
             if self.is_alert_active:
                 self.clear_alert()
 
-    def trigger_alert(self, confidence):
+    def trigger_alert(self, confidence, screenshot_path=None):
         self.is_alert_active = True
+        
+        # Save screenshot
+        if self.main_window and hasattr(self.main_window, 'latest_image') and self.main_window.latest_image:
+            import os
+            from datetime import datetime
+            captures_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "captures"))
+            os.makedirs(captures_dir, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            screenshot_path = os.path.join(captures_dir, f"alert_{timestamp}.jpg")
+            self.main_window.latest_image.save(screenshot_path)
         
         alert_msg = f"NO HELMET DETECTED ({confidence:.1%})"
         
         # Log to DB
-        database.log_event("Alert Triggered", confidence, "No helmet threshold exceeded.")
-        database.log_alert("No Helmet", alert_msg)
+        database.log_event("Alert Triggered", confidence, "No helmet threshold exceeded.", screenshot_path)
+        database.log_alert("No Helmet", alert_msg, screenshot_path)
         
         if self.safety_mode == "Smart Lock Mode":
-            database.log_event("Smart Lock Activated", confidence, "Engine lock simulated.")
+            database.log_event("Smart Lock Activated", confidence, "Engine lock simulated.", screenshot_path)
             alert_msg += " - SMART LOCK ACTIVE"
             
         self.alert_triggered.emit(alert_msg)

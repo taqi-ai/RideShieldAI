@@ -1,129 +1,196 @@
+/* RideShield AI - Next-Gen Automotive OS Stylesheet */
+
 QMainWindow {
     background-color: #05070A;
-    color: #FFFFFF;
 }
 
 QWidget {
-    color: #FFFFFF;
     font-family: 'Segoe UI', 'Inter', sans-serif;
-}
-
-/* Glassmorphism Cards */
-QWidget.glass-card, QFrame.glass-card {
-    background-color: rgba(10, 15, 25, 0.6);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 12px;
-}
-
-QWidget.glass-card:hover, QFrame.glass-card:hover {
-    background-color: rgba(15, 25, 40, 0.8);
-    border: 1px solid rgba(0, 229, 255, 0.5);
-}
-
-/* Alert States */
-QWidget.alert-card-active, QFrame.alert-card-active {
-    background-color: rgba(255, 51, 51, 0.15);
-    border: 2px solid #FF3333;
-    border-radius: 12px;
-}
-
-QWidget.safe-card-active, QFrame.safe-card-active {
-    background-color: rgba(57, 255, 20, 0.1);
-    border: 2px solid #39FF14;
-    border-radius: 12px;
+    color: #FFFFFF;
 }
 
 /* Typography */
-QLabel.h1 {
-    font-size: 28px;
-    font-weight: bold;
+.h1 {
+    font-size: 36px;
+    font-weight: 800;
     color: #FFFFFF;
+    letter-spacing: 2px;
 }
 
-QLabel.h2 {
-    font-size: 20px;
-    font-weight: bold;
-    color: #00E5FF;
+.h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #E0E0E0;
+    letter-spacing: 1px;
 }
 
-QLabel.h3 {
-    font-size: 16px;
-    font-weight: bold;
-    color: #00E5FF;
+.h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #A0A0A0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
-QLabel.value-large {
-    font-size: 72px;
-    font-weight: bold;
-    color: #FFFFFF;
-}
-
-QLabel.value-medium {
-    font-size: 32px;
-    font-weight: bold;
-    color: #FFFFFF;
-}
-
-QLabel.info-text {
+.info-text {
     font-size: 14px;
-    color: #A0A0B0;
+    font-weight: 500;
+    color: #888888;
 }
 
-QLabel.alert-text {
-    font-size: 24px;
-    font-weight: bold;
-    color: #FF3333;
-}
-
-QLabel.safe-text {
-    font-size: 24px;
-    font-weight: bold;
-    color: #39FF14;
-}
-
-QLabel.gear-text {
-    font-size: 80px;
-    font-weight: bold;
+.value-large {
+    font-size: 64px;
+    font-weight: 800;
     color: #FFFFFF;
-    background-color: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 10px 30px;
 }
 
-/* Bottom Navigation Bar */
+.value-medium {
+    font-size: 32px;
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background-color: rgba(15, 20, 30, 0.6);
+    border: 1px solid rgba(0, 229, 255, 0.15);
+    border-radius: 12px;
+}
+
+.glass-card:hover {
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    background-color: rgba(20, 25, 40, 0.7);
+}
+
+/* Safety & Alert States */
+.safe-text {
+    color: #39FF14;
+    font-weight: bold;
+}
+
+.alert-text {
+    color: #FF3333;
+    font-weight: bold;
+}
+
+.safe-card-active {
+    background-color: rgba(57, 255, 20, 0.1);
+    border: 2px solid #39FF14;
+}
+
+.alert-card-active {
+    background-color: rgba(255, 51, 51, 0.15);
+    border: 2px solid #FF3333;
+}
+
+/* Navigation Bar */
 #bottom-nav {
-    background-color: rgba(5, 7, 10, 0.8);
-    border-top: 1px solid rgba(0, 229, 255, 0.3);
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 rgba(10, 10, 15, 0.8), stop:1 #000000);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-QPushButton.nav-button {
+.nav-button {
     background-color: transparent;
+    color: #888888;
     border: none;
-    padding: 15px 0px;
     font-size: 16px;
     font-weight: bold;
-    color: #A0A0B0;
-    border-top: 4px solid transparent;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-QPushButton.nav-button:hover {
-    color: #FFFFFF;
-}
-
-QPushButton.nav-button:checked {
+.nav-button:hover {
     color: #00E5FF;
-    border-top: 4px solid #00E5FF;
 }
 
-QPushButton.nav-button[alert_mode="true"]:checked {
+.nav-button:checked {
+    color: #00E5FF;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-bottom: 3px solid #00E5FF;
+    border-radius: 8px;
+}
+
+.nav-button[alert_mode="true"] {
     color: #FF3333;
-    border-top: 4px solid #FF3333;
 }
 
-/* Camera Frame */
-QFrame#camera-frame {
+.nav-button[alert_mode="true"]:checked {
+    color: #FFFFFF;
+    border-bottom: 3px solid #FF3333;
+}
+
+/* Buttons */
+.primary-button {
+    background-color: #00E5FF;
+    color: #000000;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.primary-button:hover {
+    background-color: #33EBFF;
+}
+
+.danger-button {
+    background-color: transparent;
+    color: #FF3333;
     border: 2px solid #FF3333;
-    border-radius: 15px;
-    background-color: #000000;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.danger-button:hover {
+    background-color: rgba(255, 51, 51, 0.1);
+}
+
+/* Forms */
+QSpinBox, QComboBox, QLineEdit {
+    background-color: rgba(10, 15, 25, 0.8);
+    color: #FFFFFF;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 14px;
+}
+
+QSpinBox:focus, QComboBox:focus, QLineEdit:focus {
+    border: 1px solid #00E5FF;
+    background-color: rgba(15, 20, 35, 1);
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 30px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #0F141E;
+    color: #FFFFFF;
+    selection-background-color: #00E5FF;
+    selection-color: #000000;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+}
+
+/* Scrollbars */
+QScrollBar:vertical {
+    background: #05070A;
+    width: 8px;
+    margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:vertical {
+    background: #333333;
+    border-radius: 4px;
+    min-height: 20px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #00E5FF;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
 }

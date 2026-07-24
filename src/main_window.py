@@ -1,8 +1,9 @@
 import os
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QStackedWidget, QLabel, QFrame)
-from PyQt6.QtCore import Qt
-from src.ai_engine import AIEngine
+from PyQt6.QtCore import Qt, pyqtSlot
+from PyQt6.QtGui import QImage
+from src.ai_engine import DetectionManager
 from src.alert_system import AlertSystem
 
 from src.pages.dashboard import DashboardPage
@@ -11,6 +12,7 @@ from src.pages.analytics import AnalyticsPage
 from src.pages.event_history import EventHistoryPage
 from src.pages.settings_page import SettingsPage
 from src.pages.system_diagnostics import SystemDiagnosticsPage
+from src import database
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -20,12 +22,34 @@ class MainWindow(QMainWindow):
         self.showFullScreen() # Fullscreen for TFT dashboard feel
         
         # Core components
-        model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", "helmet_yolo26n.pt"))
-        self.ai_engine = AIEngine(model_path)
-        self.alert_system = AlertSystem()
+        settings = database.get_settings()
+        model_filename = settings.get('model_name', 'yolo11m.pt')
+        model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "models", model_filename))
+        if not os.path.exists(model_path):
+            from PyQt6.QtWidgets import QMessageBox, QFileDialog
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Model Not Found")
+            msg.setText("The default YOLO11m model could not be found.\nPlease select a valid YOLO model file (.pt).")
+            msg.exec()
+            
+            model_path, _ = QFileDialog.getOpenFileName(self, "Select YOLO Model", "", "PyTorch Models (*.pt)")
+            if not model_path:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Icon.Critical)
+                msg.setWindowTitle("Fatal Error")
+                msg.setText("No model selected. Application will now exit.")
+                msg.exec()
+                import sys
+                sys.exit()
+
+        self.ai_engine = DetectionManager(model_path)
+        self.alert_system = AlertSystem(main_window=self)
+        self.latest_image = None
         
         # Connect AI Engine to Alert System
         self.ai_engine.stats_update.connect(self.alert_system.process_stats)
+        self.ai_engine.image_update.connect(self.cache_image)
         
         self.init_ui()
         self.apply_styles()
@@ -46,7 +70,7 @@ class MainWindow(QMainWindow):
         # Initialize pages
         self.dashboard_page = DashboardPage(self.ai_engine, self.alert_system, main_window=self)
         self.live_monitor_page = LiveMonitorPage(ai_engine=self.ai_engine, alert_system=self.alert_system)
-        self.analytics_page = AnalyticsPage()
+        self.analytics_page = AnalyticsPage(ai_engine=self.ai_engine, alert_system=self.alert_system)
         self.event_history_page = EventHistoryPage()
         self.settings_page = SettingsPage(alert_system=self.alert_system)
         self.system_diagnostics_page = SystemDiagnosticsPage(ai_engine=self.ai_engine)
@@ -58,6 +82,10 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.settings_page)
         self.stacked_widget.addWidget(self.system_diagnostics_page)
 
+        # Connect AI Engine to pages that need live data
+        self.ai_engine.stats_update.connect(self.dashboard_page.update_live_stats)
+        self.ai_engine.stats_update.connect(self.system_diagnostics_page.update_ai_stats)
+
         # Bottom Navigation Bar
         self.bottom_nav = QFrame()
         self.bottom_nav.setObjectName("bottom-nav")
@@ -68,12 +96,11 @@ class MainWindow(QMainWindow):
         
         self.nav_buttons = []
         pages_info = [
-            ("Dashboard", 0),
-            ("AI Monitor", 1),
-            ("Analytics", 2),
-            ("History", 3),
-            ("Settings", 4),
-            ("Diagnostics", 5)
+            ("DASHBOARD", 0),
+            ("AI MONITOR", 1),
+            ("ANALYTICS", 2),
+            ("HISTORY", 3),
+            ("SETTINGS", 4)
         ]
         
         nav_layout.addStretch()
@@ -132,4 +159,8 @@ class MainWindow(QMainWindow):
                 self.showFullScreen()
         else:
             super().keyPressEvent(event)
+            
+    @pyqtSlot(QImage)
+    def cache_image(self, qimg):
+        self.latest_image = qimg
 

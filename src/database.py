@@ -1,8 +1,10 @@
 import sqlite3
 import os
+import uuid
 from datetime import datetime
 
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "database", "rideshield.db"))
+SESSION_ID = str(uuid.uuid4())
 
 def get_connection():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -17,12 +19,21 @@ def init_db():
         CREATE TABLE IF NOT EXISTS detections (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            session_id TEXT,
+            detected_class TEXT,
             helmet_status BOOLEAN,
             confidence REAL,
             fps REAL,
             inference_time REAL
         )
     ''')
+    
+    # Try adding new columns to existing table
+    try:
+        cursor.execute("ALTER TABLE detections ADD COLUMN session_id TEXT")
+        cursor.execute("ALTER TABLE detections ADD COLUMN detected_class TEXT")
+    except:
+        pass
     
     # Events table
     cursor.execute('''
@@ -31,7 +42,8 @@ def init_db():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             event_type TEXT,
             confidence REAL,
-            details TEXT
+            details TEXT,
+            screenshot_path TEXT
         )
     ''')
     
@@ -41,7 +53,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             type TEXT,
-            description TEXT
+            description TEXT,
+            screenshot_path TEXT
         )
     ''')
     
@@ -62,9 +75,16 @@ def init_db():
             alert_delay INTEGER DEFAULT 5,
             confidence_threshold REAL DEFAULT 0.5,
             camera_id INTEGER DEFAULT 0,
-            resolution TEXT DEFAULT '640x480'
+            resolution TEXT DEFAULT '640x480',
+            model_name TEXT DEFAULT 'yolo11m.pt'
         )
     ''')
+    
+    try:
+        cursor.execute("ALTER TABLE settings ADD COLUMN model_name TEXT DEFAULT 'yolo11m.pt'")
+    except:
+        pass
+
     
     # Insert default settings if not exists
     cursor.execute('INSERT OR IGNORE INTO settings (id) VALUES (1)')
@@ -72,33 +92,46 @@ def init_db():
     conn.commit()
     conn.close()
 
-def log_detection(helmet_status, confidence, fps, inference_time):
+def log_detection(helmet_status, confidence, fps, inference_time, detected_class="Helmet"):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO detections (helmet_status, confidence, fps, inference_time)
+        INSERT INTO detections (session_id, detected_class, helmet_status, confidence, fps, inference_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (SESSION_ID, detected_class, helmet_status, confidence, fps, inference_time))
+    conn.commit()
+    conn.close()
+
+def log_event(event_type, confidence=None, details="", screenshot_path=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Try adding columns if they don't exist (for existing databases)
+    try:
+        cursor.execute('ALTER TABLE events ADD COLUMN screenshot_path TEXT')
+    except:
+        pass
+        
+    cursor.execute('''
+        INSERT INTO events (event_type, confidence, details, screenshot_path)
         VALUES (?, ?, ?, ?)
-    ''', (helmet_status, confidence, fps, inference_time))
+    ''', (event_type, confidence, details, screenshot_path))
     conn.commit()
     conn.close()
 
-def log_event(event_type, confidence=None, details=""):
+def log_alert(alert_type, description="", screenshot_path=None):
     conn = get_connection()
     cursor = conn.cursor()
+    
+    try:
+        cursor.execute('ALTER TABLE alerts ADD COLUMN screenshot_path TEXT')
+    except:
+        pass
+        
     cursor.execute('''
-        INSERT INTO events (event_type, confidence, details)
+        INSERT INTO alerts (type, description, screenshot_path)
         VALUES (?, ?, ?)
-    ''', (event_type, confidence, details))
-    conn.commit()
-    conn.close()
-
-def log_alert(alert_type, description=""):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO alerts (type, description)
-        VALUES (?, ?)
-    ''', (alert_type, description))
+    ''', (alert_type, description, screenshot_path))
     conn.commit()
     conn.close()
 
@@ -124,6 +157,7 @@ def update_settings(safety_mode, alert_delay, confidence_threshold, camera_id, r
 
 def get_recent_events(limit=50):
     conn = get_connection()
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM events ORDER BY timestamp DESC LIMIT ?', (limit,))
     rows = cursor.fetchall()
@@ -131,7 +165,7 @@ def get_recent_events(limit=50):
     return rows
 
 def update_setting(key, value):
-    valid_keys = ['safety_mode', 'alert_delay', 'confidence_threshold', 'camera_id', 'resolution']
+    valid_keys = ['safety_mode', 'alert_delay', 'confidence_threshold', 'camera_id', 'resolution', 'model_name']
     if key not in valid_keys:
         return
     conn = get_connection()
