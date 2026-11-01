@@ -1,0 +1,128 @@
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { GithubLogo, List, X } from '@phosphor-icons/react'
+import { BRAND } from '../config/brand'
+import { useReveal } from '../hooks/useReveal'
+import { Logo } from './Logo'
+
+const LINKS = [
+  { to: '/#product', label: 'Product' },
+  { to: '/#how', label: 'How It Works' },
+  { to: '/test-drive', label: 'Test It Out' },
+  { to: '/trailer', label: 'Trailer' },
+] as const
+
+function ScrollManager() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    if (hash) {
+      // Wait a frame so the target exists after a route change.
+      const id = requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView())
+      return () => cancelAnimationFrame(id)
+    }
+    window.scrollTo(0, 0)
+  }, [pathname, hash])
+  return null
+}
+
+function Nav() {
+  const [open, setOpen] = useState(false)
+  const close = () => setOpen(false)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  return (
+    <header className="nav">
+      <div className="container nav-inner">
+        <Logo />
+        <nav className="nav-links" aria-label="Primary">
+          {LINKS.map((l) =>
+            l.to.includes('#') ? (
+              <Link key={l.to} to={l.to}>
+                {l.label}
+              </Link>
+            ) : (
+              <NavLink key={l.to} to={l.to}>
+                {l.label}
+              </NavLink>
+            ),
+          )}
+        </nav>
+        <Link to="/test-drive" className="btn btn-primary btn-sm nav-cta">
+          Experience RideShield
+        </Link>
+        <button className="nav-toggle" aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen((o) => !o)}>
+          {open ? <X size={22} /> : <List size={22} />}
+        </button>
+      </div>
+      {open && (
+        <nav id="mobile-menu" className="nav-menu" aria-label="Primary mobile">
+          {LINKS.map((l) => (
+            <Link key={l.to} to={l.to} onClick={close}>
+              {l.label}
+            </Link>
+          ))}
+          <Link to="/test-drive" className="btn btn-primary" onClick={close}>
+            Experience RideShield
+          </Link>
+        </nav>
+      )}
+    </header>
+  )
+}
+
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="container">
+        <div className="footer-grid">
+          <div>
+            <Logo />
+            <p className="note">
+              The live test processes media in your browser. Webcam frames and uploaded videos stay on your device and are never sent to a server.
+            </p>
+          </div>
+          <div>
+            <h4>Product</h4>
+            <ul>
+              <li><Link to="/#product">Overview</Link></li>
+              <li><Link to="/#how">How it works</Link></li>
+              <li><Link to="/test-drive">Test drive</Link></li>
+              <li><Link to="/trailer">Trailer</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Project</h4>
+            <ul>
+              <li>
+                <a href={BRAND.repoUrl} target="_blank" rel="noreferrer noopener" style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+                  <GithubLogo size={18} /> Source on GitHub
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <p className="footer-base">{BRAND.name}. Detection runs locally with ONNX Runtime Web.</p>
+      </div>
+    </footer>
+  )
+}
+
+export function Layout() {
+  useReveal()
+  return (
+    <>
+      <a className="skip-link" href="#main">Skip to content</a>
+      <ScrollManager />
+      <Nav />
+      <main id="main">
+        <Outlet />
+      </main>
+      <Footer />
+    </>
+  )
+}

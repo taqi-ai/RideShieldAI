@@ -1,0 +1,33 @@
+﻿{
+    "name":  "rideshield-web",
+    "private":  true,
+    "version":  "0.0.0",
+    "type":  "module",
+    "scripts":  {
+                    "dev":  "vite",
+                    "build":  "tsc -b \u0026\u0026 vite build",
+                    "lint":  "oxlint",
+                    "preview":  "vite preview",
+                    "typecheck":  "tsc -b",
+                    "postbuild":  "node scripts/check-assets.mjs",
+                    "export:model":  "..\\.venv\\Scripts\\python.exe scripts/export_model.py"
+                },
+    "dependencies":  {
+                         "@fontsource-variable/geist":  "^5.3.0",
+                         "@fontsource-variable/geist-mono":  "^5.3.0",
+                         "@phosphor-icons/react":  "^2.1.10",
+                         "onnxruntime-web":  "^1.31.1",
+                         "react":  "^19.3.1",
+                         "react-dom":  "^19.3.1",
+                         "react-router-dom":  "^7.18.5"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^24.19.2",
+                            "@types/react":  "^19.3.0",
+                            "@types/react-dom":  "^19.3.0",
+                            "@vitejs/plugin-react":  "^6.1.2",
+                            "oxlint":  "^1.89.0",
+                            "typescript":  "~7.0.2",
+                            "vite":  "^8.3.5"
+                        }
+}

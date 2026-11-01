@@ -1,0 +1,1 @@
+Drop the finished trailer here as rideshield-trailer.mp4 (optional: rideshield-trailer.vtt captions, rideshield-trailer-poster.jpg poster). Keep each file under 25 MiB for Cloudflare Pages. See DEPLOYMENT.md.
