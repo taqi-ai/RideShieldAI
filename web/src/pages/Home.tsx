@@ -166,18 +166,12 @@ export default function Home() {
             <h2>See RideShield in action.</h2>
             <p>Watch the 10-second trailer.</p>
             <Link to="/trailer" className="btn btn-primary">
-              Check Out the Trailer <FilmSlate size={18} />
+              Open the Trailer Page <FilmSlate size={18} />
             </Link>
           </div>
-          <Link to="/trailer" className="trailer-frame reveal" aria-label="Open the trailer page">
-            <div className="poster">
-              <Photo src="/media/rideshield-trailer-poster.jpg" className="poster-photo" />
-              <div className="poster-inner">
-                <h3>Watch the Trailer</h3>
-                <p>10 seconds. Sound on.</p>
-              </div>
-            </div>
-          </Link>
+          <div className="trailer-frame reveal">
+            <video src="/media/rideshield-trailer.mp4" poster="/media/rideshield-trailer-poster.jpg" controls playsInline preload="metadata" />
+          </div>
         </div>
       </section>
 

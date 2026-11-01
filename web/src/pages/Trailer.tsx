@@ -5,23 +5,6 @@ import { BRAND } from '../config/brand'
 import { Photo } from '../hooks/useAsset'
 import { usePageMeta } from '../hooks/usePageMeta'
 
-type Availability = 'checking' | 'available' | 'missing'
-
-function useTrailerAvailability(): Availability {
-  const [state, setState] = useState<Availability>('checking')
-  useEffect(() => {
-    let alive = true
-    // The SPA fallback answers missing files with HTML, so the content type decides.
-    fetch(BRAND.trailer.src, { method: 'HEAD' })
-      .then((r) => alive && setState(r.ok && (r.headers.get('content-type') ?? '').startsWith('video') ? 'available' : 'missing'))
-      .catch(() => alive && setState('missing'))
-    return () => {
-      alive = false
-    }
-  }, [])
-  return state
-}
-
 function useAsset(url: string, kind: 'text' | 'image') {
   const [ok, setOk] = useState(false)
   useEffect(() => {
@@ -41,7 +24,6 @@ function useAsset(url: string, kind: 'text' | 'image') {
 
 export default function Trailer() {
   usePageMeta(`Trailer | ${BRAND.name}`, `Watch the ${BRAND.name} trailer. The 10-second film.`)
-  const availability = useTrailerAvailability()
   const hasCaptions = useAsset(BRAND.trailer.captions, 'text')
   const hasPoster = useAsset(BRAND.trailer.poster, 'image')
   const frameRef = useRef<HTMLDivElement>(null)
@@ -51,7 +33,7 @@ export default function Trailer() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fsSupported] = useState(() => typeof document !== 'undefined' && !!document.fullscreenEnabled)
-  const live = availability === 'available' && !error
+  const live = !error
 
   const toggle = () => {
     const v = videoRef.current
@@ -75,9 +57,7 @@ export default function Trailer() {
       <div className="page-title">
         <h1>See RideShield in action.</h1>
         <p>
-          {live
-            ? 'The 10-second trailer.'
-            : 'The trailer is still in production.'}
+          {live ? 'The 10-second trailer.' : 'The trailer could not be played here.'}
         </p>
       </div>
 
@@ -89,7 +69,7 @@ export default function Trailer() {
             poster={hasPoster ? BRAND.trailer.poster : undefined}
             controls
             playsInline
-            preload="metadata"
+            preload="auto"
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onWaiting={() => setLoading(true)}
@@ -111,14 +91,8 @@ export default function Trailer() {
           <div className="poster">
             <Photo src="/media/rideshield-trailer-poster.jpg" className="poster-photo" />
             <div className="poster-inner">
-              {availability === 'checking' ? (
-                <span className="chip" role="status">Checking for the trailer</span>
-              ) : (
-                <>
-                  <h3>Trailer Coming Soon</h3>
-                  <p>{error ?? 'The 10-second film. When it is added, it plays right here.'}</p>
-                </>
-              )}
+              <h3>Trailer unavailable</h3>
+              <p>{error}</p>
               <span className="play-ring" aria-hidden="true">
                 <Play size={32} weight="fill" />
               </span>
