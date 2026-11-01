@@ -40,7 +40,7 @@ function useAsset(url: string, kind: 'text' | 'image') {
 }
 
 export default function Trailer() {
-  usePageMeta(`Trailer | ${BRAND.name}`, `Watch the ${BRAND.name} trailer. The 30-second film is in production.`)
+  usePageMeta(`Trailer | ${BRAND.name}`, `Watch the ${BRAND.name} trailer. The 10-second film.`)
   const availability = useTrailerAvailability()
   const hasCaptions = useAsset(BRAND.trailer.captions, 'text')
   const hasPoster = useAsset(BRAND.trailer.poster, 'image')
@@ -76,8 +76,8 @@ export default function Trailer() {
         <h1>See RideShield in action.</h1>
         <p>
           {live
-            ? 'The 30-second trailer.'
-            : 'The 30-second film is still in production. This page is ready for it.'}
+            ? 'The 10-second trailer.'
+            : 'The trailer is still in production.'}
         </p>
       </div>
 
@@ -116,7 +116,7 @@ export default function Trailer() {
               ) : (
                 <>
                   <h3>Trailer Coming Soon</h3>
-                  <p>{error ?? 'The 30-second film is in production. When it is added, it plays right here.'}</p>
+                  <p>{error ?? 'The 10-second film. When it is added, it plays right here.'}</p>
                 </>
               )}
               <span className="play-ring" aria-hidden="true">

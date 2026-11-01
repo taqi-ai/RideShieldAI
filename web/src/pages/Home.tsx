@@ -164,7 +164,7 @@ export default function Home() {
         <div className="container teaser">
           <div className="reveal">
             <h2>See RideShield in action.</h2>
-            <p>A 30-second film is in production. The trailer page is ready for it.</p>
+            <p>Watch the 10-second trailer.</p>
             <Link to="/trailer" className="btn btn-primary">
               Check Out the Trailer <FilmSlate size={18} />
             </Link>
@@ -173,8 +173,8 @@ export default function Home() {
             <div className="poster">
               <Photo src="/media/rideshield-trailer-poster.jpg" className="poster-photo" />
               <div className="poster-inner">
-                <h3>Trailer Coming Soon</h3>
-                <p>The 30-second film is in production.</p>
+                <h3>Watch the Trailer</h3>
+                <p>10 seconds. Sound on.</p>
               </div>
             </div>
           </Link>
