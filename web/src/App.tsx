@@ -10,6 +10,7 @@ const Trailer = lazy(() => import('./pages/Trailer'))
 const Project = lazy(() => import('./pages/Project'))
 const OnBike = lazy(() => import('./pages/OnBike'))
 const Roadmap = lazy(() => import('./pages/Roadmap'))
+const Download = lazy(() => import('./pages/Download'))
 
 function NotFound() {
   usePageMeta('Page not found | RideShield AI', 'This page does not exist.')
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/project" element={<Project />} />
           <Route path="/on-bike" element={<OnBike />} />
           <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/download" element={<Download />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

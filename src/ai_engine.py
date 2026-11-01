@@ -109,15 +109,15 @@ class DetectionManager(QThread):
                             max_confidence = conf
                         
                         # Draw bounding box
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (151, 220, 61), 2)
                         cv2.putText(frame, f"Helmet {conf:.2f}", (x1, y1 - 10), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (151, 220, 61), 2)
                     else:
                         # Draw other detected objects (e.g., no_helmet) in red
                         label = self.model.names.get(cls, "Object")
-                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (116, 102, 255), 2)
                         cv2.putText(frame, f"{label} {conf:.2f}", (x1, y1 - 10), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (116, 102, 255), 2)
                         
                     bboxes.append({'class': cls, 'conf': conf, 'box': [x1, y1, x2, y2]})
 

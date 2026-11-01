@@ -1,3 +1,10 @@
+import multiprocessing
+
+# Must run before anything else in the packaged app. Some libraries (py-cpuinfo on the diagnostics page)
+# start helper processes by re-running this program; without this each helper would open another full
+# copy of the app, and so on.
+multiprocessing.freeze_support()
+
 import sys
 import time
 from PyQt6.QtWidgets import QApplication
@@ -6,7 +13,10 @@ from src.splash_screen import RideShieldSplash
 
 def main():
     app = QApplication(sys.argv)
-    
+    from src import theme
+    theme.load_fonts()
+    app.setApplicationName("RideShield AI")
+
     splash = RideShieldSplash()
     splash.show()
     app.processEvents()
@@ -15,7 +25,7 @@ def main():
     time.sleep(0.4)
     app.processEvents()
     
-    splash.set_progress(40, "Loading AI Model (YOLO11m)...")
+    splash.set_progress(40, "Loading AI model...")
     time.sleep(0.8)
     app.processEvents()
     

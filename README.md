@@ -59,7 +59,13 @@ Or by hand: `python -m venv .venv`, `.venv\Scripts\activate`, `pip install -r re
 
 **Files:** `main.py` (entry point), `src/` (UI, detection thread, alert and audio systems, database), `assets/` (images and stylesheet), `models/` (weights), `requirements.txt` (PyQt6, opencv-python, numpy, ultralytics, psutil, py-cpuinfo).
 
-The desktop app has not been changed by the website work, and I did not run it while writing this section.
+**Windows download.** A packaged build (no Python needed) is published as `RideShield-Windows.zip` on the [Releases page](https://github.com/taqi-ai/RideShieldAI/releases) and linked from the site's Download page. Unzip it and run `RideShield.exe`. The build is unsigned, so Windows SmartScreen may warn on first run (More info, then Run anyway). Check the SHA-256 shown on the Download page if you want to verify the file. In the packaged app the database and alert snapshots are stored in `%APPDATA%\RideShieldAI`.
+
+**Build it yourself:** `powershell -ExecutionPolicy Bypass -File packaginguild_windows.ps1` (needs `.venv` with the requirements installed). It uses PyInstaller, writes `dist\RideShield-Windows.zip` and prints the size and SHA-256 to put in `web/src/config/download.ts`.
+
+**Full screen:** the app opens full screen. Press Esc or F11 once to switch between full screen and a maximised window.
+
+**Licence note:** detection uses Ultralytics YOLO, which is AGPL-3.0. Redistributing the packaged app means passing the same terms on to the people who receive it.
 
 ### Website versus desktop
 

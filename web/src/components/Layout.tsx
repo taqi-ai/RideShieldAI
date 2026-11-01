@@ -13,11 +13,12 @@ const LINKS = [
   { to: '/on-bike', label: 'On-Bike' },
   { to: '/roadmap', label: 'Roadmap' },
   { to: '/test-drive', label: 'Test It Out' },
+  { to: '/download', label: 'Desktop' },
   { to: '/trailer', label: 'Trailer' },
 ] as const
 
 // Pages that open on the violet band, so the nav is white over them until you scroll.
-const BAND_PAGES = ['/', '/project', '/on-bike', '/roadmap']
+const BAND_PAGES = ['/', '/project', '/on-bike', '/roadmap', '/download']
 
 function ScrollManager() {
   const { pathname, hash } = useLocation()
@@ -116,6 +117,7 @@ function Footer() {
               <li><Link to="/on-bike">Built for the bike</Link></li>
               <li><Link to="/roadmap">Future scope</Link></li>
               <li><Link to="/test-drive">Test drive</Link></li>
+              <li><Link to="/download">Desktop app</Link></li>
               <li><Link to="/trailer">Trailer</Link></li>
             </ul>
           </div>

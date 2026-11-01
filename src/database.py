@@ -3,7 +3,9 @@ import os
 import uuid
 from datetime import datetime
 
-DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "database", "rideshield.db"))
+from src.paths import user_file
+
+DB_PATH = os.path.abspath(user_file("database", "rideshield.db"))
 SESSION_ID = str(uuid.uuid4())
 
 def get_connection():
