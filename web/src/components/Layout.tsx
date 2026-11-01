@@ -9,10 +9,15 @@ import { ThemeToggle } from './ThemeToggle'
 
 const LINKS = [
   { to: '/#product', label: 'Product' },
-  { to: '/#how', label: 'How It Works' },
+  { to: '/project', label: 'Project' },
+  { to: '/on-bike', label: 'On-Bike' },
+  { to: '/roadmap', label: 'Roadmap' },
   { to: '/test-drive', label: 'Test It Out' },
   { to: '/trailer', label: 'Trailer' },
 ] as const
+
+// Pages that open on the violet band, so the nav is white over them until you scroll.
+const BAND_PAGES = ['/', '/project', '/on-bike', '/roadmap']
 
 function ScrollManager() {
   const { pathname, hash } = useLocation()
@@ -42,7 +47,7 @@ function Nav() {
   }, [open])
 
   return (
-    <header className={`nav${solid ? ' solid' : ''}${open ? ' open' : ''}${pathname === '/' ? ' on-hero' : ''}`}>
+    <header className={`nav${solid ? ' solid' : ''}${open ? ' open' : ''}${BAND_PAGES.includes(pathname) ? ' on-hero' : ''}`}>
       <div className="container nav-inner">
         <Logo />
         <nav className="nav-links" aria-label="Primary">
@@ -107,6 +112,9 @@ function Footer() {
             <ul>
               <li><Link to="/#product">Overview</Link></li>
               <li><Link to="/#how">How it works</Link></li>
+              <li><Link to="/project">The project</Link></li>
+              <li><Link to="/on-bike">Built for the bike</Link></li>
+              <li><Link to="/roadmap">Future scope</Link></li>
               <li><Link to="/test-drive">Test drive</Link></li>
               <li><Link to="/trailer">Trailer</Link></li>
             </ul>

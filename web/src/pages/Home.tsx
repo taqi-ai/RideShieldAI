@@ -143,6 +143,24 @@ export default function Home() {
       </section>
 
       <section className="section">
+        <div className="container idea">
+          <div className="reveal">
+            <h2>Built for the bike.</h2>
+            <p>
+              RideShield was designed to ride on the motorcycle: a camera at the dashboard that checks the helmet before the ride starts. What you can try here is the detection half of that idea.
+            </p>
+            <Link to="/on-bike" className="btn btn-primary">
+              Read the idea <ArrowRight size={18} className="arrow" />
+            </Link>
+          </div>
+          <figure className="figure reveal">
+            <img src="/img/on-bike-concept.jpg" alt="Concept render of a motorcycle dashboard screen with green detection boxes on two riders" width={1774} height={887} loading="lazy" />
+            <small>Concept render. The on-bike hardware has not been built.</small>
+          </figure>
+        </div>
+      </section>
+
+      <section className="section alt">
         <div className="container teaser">
           <div className="reveal">
             <h2>See RideShield in action.</h2>

@@ -7,6 +7,9 @@ import { usePageMeta } from './hooks/usePageMeta'
 // The cockpit pulls in ONNX Runtime, so it is split out of the landing bundle.
 const TestDrive = lazy(() => import('./pages/TestDrive'))
 const Trailer = lazy(() => import('./pages/Trailer'))
+const Project = lazy(() => import('./pages/Project'))
+const OnBike = lazy(() => import('./pages/OnBike'))
+const Roadmap = lazy(() => import('./pages/Roadmap'))
 
 function NotFound() {
   usePageMeta('Page not found | RideShield AI', 'This page does not exist.')
@@ -36,6 +39,9 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="/trailer" element={<Trailer />} />
+          <Route path="/project" element={<Project />} />
+          <Route path="/on-bike" element={<OnBike />} />
+          <Route path="/roadmap" element={<Roadmap />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

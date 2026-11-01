@@ -11,7 +11,7 @@ The name is **RideShield AI**. The helmet logo comes from `ai assets/logo full.p
 
 ## Web experience
 
-Routes: `/` landing page, `/test-drive` cockpit (webcam or uploaded video), `/trailer` trailer page (placeholder until the film is added).
+Routes: `/` landing page with a live detector, `/test-drive` full cockpit (webcam or uploaded video, model switcher), `/project` what exists and what has not been measured, `/on-bike` the original on-bike idea (the project's main differentiator, not yet built as hardware), `/roadmap` future scope with honest Built, Simulated, Planned and Exploring labels, and `/trailer` (placeholder until the film is added).
 
 ```bash
 cd web
