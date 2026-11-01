@@ -58,12 +58,9 @@ Not verified here: live webcam capture (blocked in the test browser), fullscreen
 
 Live at https://rideshield-ai.vercel.app (Vercel Hobby plan, free). Config is `web/vercel.json`: it sets the cross-origin isolation headers, cache lifetimes and a single-page-app rewrite so `/test-drive` and `/trailer` work on refresh.
 
-```bash
-cd web
-npx vercel deploy --prod      # needs `vercel login`; project is linked as rideshield-ai
-```
+The project is connected to the `taqi-ai/RideShieldAI` GitHub repository with root directory `web` and Node 22. Pushing a branch creates a preview deployment; the production branch is `main`, so merging to `main` updates https://rideshield-ai.vercel.app. Build command, output directory and framework come from `vercel.json`.
 
-Or connect the GitHub repository in the Vercel dashboard with root directory `web`; the build command, output directory and framework come from `vercel.json`. The Hobby plan is for personal, non-commercial use, so move to another host if this becomes a commercial product. The `rideshield-ai` project name matches the final product name.
+Because the root directory is set to `web`, run any manual CLI deploy from the repository root after `vercel link`, not from inside `web/`. The Hobby plan is for personal, non-commercial use, so move to another host if this becomes a commercial product. The `rideshield-ai` project name matches the final product name.
 
 ## 4b. Cloudflare Pages build settings (alternative)
 
