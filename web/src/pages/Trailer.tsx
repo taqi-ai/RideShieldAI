@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowsOut, Play, SpeakerHigh, SpeakerSlash, Pause, FilmSlate } from '@phosphor-icons/react'
 import { BRAND } from '../config/brand'
-import { MarkNight } from '../components/Logo'
+import { Photo } from '../hooks/useAsset'
 import { usePageMeta } from '../hooks/usePageMeta'
 
 type Availability = 'checking' | 'available' | 'missing'
@@ -109,15 +109,14 @@ export default function Trailer() {
         )}
         {!live && (
           <div className="poster">
+            <Photo src="/media/rideshield-trailer-poster.jpg" className="poster-photo" />
             <div className="poster-inner">
               {availability === 'checking' ? (
                 <span className="chip" role="status">Checking for the trailer</span>
               ) : (
                 <>
-                  <MarkNight />
-                  <span className="chip">30-second film in production</span>
                   <h3>Trailer Coming Soon</h3>
-                  <p>{error ?? 'When the film is added, it plays right here.'}</p>
+                  <p>{error ?? 'The 30-second film is in production. When it is added, it plays right here.'}</p>
                 </>
               )}
               <span className="play-ring" aria-hidden="true">

@@ -4,6 +4,7 @@ import { DEFAULT_MODEL, getModel, initialModelId, rememberModelId, type ModelSpe
 import { Tracker, type TrackedDetection } from '../inference/tracker'
 
 export type EngineState =
+  | { status: 'idle' }
   | { status: 'loading'; progress: LoadProgress }
   | { status: 'ready'; info: EngineInfo }
   | { status: 'error'; message: string }
@@ -112,13 +113,20 @@ function describeMediaError(v: HTMLVideoElement): string {
   return 'The video could not be loaded. Choose another file.'
 }
 
-export function useDetectionSession() {
+type PendingStart = { kind: 'camera' } | { kind: 'sample' } | { kind: 'file'; file: File }
+
+// lazy: do not download the model until a source is started (used by the landing-page demo, so a visit to
+// the home page costs nothing until the visitor asks for detection).
+export function useDetectionSession({ lazy = false }: { lazy?: boolean } = {}) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [modelId, setModelId] = useState(initialModelId)
   const spec = getModel(modelId)
-  const [engineState, setEngineState] = useState<EngineState>({ status: 'loading', progress: lastProgress })
+  const [wanted, setWanted] = useState(!lazy)
+  const [engineState, setEngineState] = useState<EngineState>(
+    lazy ? { status: 'idle' } : { status: 'loading', progress: lastProgress },
+  )
   const [run, setRun] = useState<RunState>('idle')
   const [source, setSource] = useState<SourceKind | null>(null)
   const [sourceLabel, setSourceLabel] = useState('')
@@ -149,6 +157,7 @@ export function useDetectionSession() {
 
   // Engine loading for the selected model, with progress shared across mounts.
   useEffect(() => {
+    if (!wanted) return
     let alive = true
     engineRef.current = null
     const onProgress = (p: LoadProgress) => alive && setEngineState({ status: 'loading', progress: p })
@@ -165,7 +174,7 @@ export function useDetectionSession() {
       alive = false
       progressListeners.delete(onProgress)
     }
-  }, [spec])
+  }, [spec, wanted])
 
   // Is optional sample footage present? (The SPA fallback returns HTML for missing files, so check the type.)
   useEffect(() => {
@@ -254,7 +263,7 @@ export function useDetectionSession() {
     ctx.clearRect(0, 0, w, h)
     const lw = Math.max(2, Math.round(w / 480))
     const fs = Math.max(12, Math.round(w / 56))
-    ctx.font = `600 ${fs}px "Geist Mono Variable", ui-monospace, monospace`
+    ctx.font = `600 ${fs}px "Geist Variable", system-ui, sans-serif`
     ctx.textBaseline = 'top'
     for (const d of dets) {
       const color = d.label === 'helmet' ? COLORS.helmet : d.label === 'nohelmet' ? COLORS.nohelmet : COLORS.other
@@ -490,11 +499,52 @@ export function useDetectionSession() {
     [modelId, stop, resetStats],
   )
 
+  // begin*: start a source, waking the engine first if it was left asleep (lazy mode). The action runs as
+  // soon as the model is ready, so one click both loads the model and starts the camera or video.
+  const pendingRef = useRef<PendingStart | null>(null)
+  const startersRef = useRef({ startCamera, startFile, startSample })
+  useEffect(() => {
+    startersRef.current = { startCamera, startFile, startSample }
+  })
+  useEffect(() => {
+    if (engineState.status !== 'ready' || !pendingRef.current) return
+    const p = pendingRef.current
+    pendingRef.current = null
+    const s = startersRef.current
+    if (p.kind === 'camera') void s.startCamera()
+    else if (p.kind === 'sample') void s.startSample()
+    else void s.startFile(p.file)
+  }, [engineState.status])
+  const begin = useCallback(
+    (p: PendingStart) => {
+      if (engineState.status === 'error') return
+      pendingRef.current = p
+      if (!wanted) {
+        setEngineState({ status: 'loading', progress: { phase: 'runtime', loaded: 0, total: 1 } })
+        setWanted(true)
+      } else if (engineState.status === 'ready') {
+        // Already loaded: the effect above will not fire again, so run it now.
+        pendingRef.current = null
+        const s = startersRef.current
+        if (p.kind === 'camera') void s.startCamera()
+        else if (p.kind === 'sample') void s.startSample()
+        else void s.startFile(p.file)
+      }
+    },
+    [engineState.status, wanted],
+  )
+  const beginCamera = useCallback(() => begin({ kind: 'camera' }), [begin])
+  const beginSample = useCallback(() => begin({ kind: 'sample' }), [begin])
+  const beginFile = useCallback((file: File) => begin({ kind: 'file', file }), [begin])
+
   return {
     videoRef,
     canvasRef,
     spec,
     selectModel,
+    beginCamera,
+    beginSample,
+    beginFile,
     engineState,
     run,
     source,

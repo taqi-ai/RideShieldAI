@@ -28,3 +28,5 @@ public/_test
 .export-tmp
 .vercel
 .env*
+
+.taste-skill

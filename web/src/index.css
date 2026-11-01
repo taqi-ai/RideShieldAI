@@ -1,6 +1,6 @@
 @import '@fontsource-variable/geist';
-@import '@fontsource-variable/geist-mono';
-@import '@fontsource-variable/funnel-display';
+@import '@fontsource/barlow-condensed/latin-700.css';
+@import '@fontsource/barlow-condensed/latin-800.css';
 
 /*
   RideShield AI design system, in the same language as Ascora: cool paper in the day, near-black in the
@@ -63,8 +63,7 @@
   --r: 0.75rem;
   --r-lg: 1.5rem;
   --font: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --display: 'Funnel Display Variable', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  --mono: 'Geist Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --display: 'Barlow Condensed', 'Arial Narrow', ui-sans-serif, sans-serif;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --nav-h: 64px;
 }
@@ -81,6 +80,7 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 body {
+  font-variant-numeric: tabular-nums;
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -335,42 +335,16 @@ html.theme-fade *::after {
   border-color: color-mix(in oklch, var(--accent) 50%, transparent);
 }
 
-/* Hairline gradient edge that catches light on hover (cards, tiles, plane). */
-.edge {
-  position: relative;
-  isolation: isolate;
-}
-.edge::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(160deg, color-mix(in oklch, var(--accent) 45%, transparent), transparent 40%, transparent 70%, color-mix(in oklch, var(--accent) 22%, transparent));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0.55;
-  transition: opacity 300ms ease;
-  pointer-events: none;
-}
-.edge:hover::before {
-  opacity: 1;
-}
-
 /* Navigation: transparent at the top, blurred paper once you scroll. */
 .nav {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 40;
-  border-bottom: 1px solid transparent;
-  transition: background-color 300ms, border-color 300ms, backdrop-filter 300ms;
+  transition: background-color 300ms, backdrop-filter 300ms;
 }
 .nav.solid,
 .nav.open {
   background: var(--nav-bg);
-  border-bottom-color: var(--line);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -422,10 +396,7 @@ html.theme-fade *::after {
   display: grid;
   gap: 0.25rem;
   padding: 1rem;
-  border-top: 1px solid var(--line);
-  background: var(--nav-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-2);
 }
 .nav-menu a:not(.btn) {
   padding: 0.85rem 0.75rem;
@@ -451,76 +422,39 @@ html.theme-fade *::after {
   }
 }
 
-/* First visit of a session: logo on black, then the curtain lifts. CSS only, so it never waits for JS. */
-@keyframes intro-lift {
-  0% {
-    clip-path: inset(0 0 0 0);
-  }
-  100% {
-    clip-path: inset(0 0 100% 0);
-    visibility: hidden;
-  }
+/*
+  Landing hero. World: road signage and race livery. The ground is the violet of the helmet's visor stripe,
+  drenched across the whole first screen; the detector sits in a white-bordered "sign" panel. A single skewed
+  slab behind it repeats the stripe's angle. No stripes, grids or gradients are used as decoration.
+*/
+:root {
+  --hero-bg: oklch(0.44 0.21 290);
+  --hero-bg-2: oklch(0.35 0.19 292);
+  --hero-ink: oklch(0.99 0.004 290);
+  --hero-ink-2: oklch(0.99 0.004 290 / 0.8);
 }
-@keyframes intro-logo {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
+:root[data-theme='dark'] {
+  --hero-bg: oklch(0.2 0.08 290);
+  --hero-bg-2: oklch(0.15 0.055 290);
+}
+@keyframes speed-in {
+  from {
+    opacity: 0.001;
+    transform: translateX(-6%) skewX(-10deg);
   }
-  25%,
-  72% {
+  to {
     opacity: 1;
     transform: none;
   }
-  100% {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.99);
-  }
 }
-.intro-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  background: oklch(0.1 0.005 280);
-  animation: intro-lift 800ms cubic-bezier(0.76, 0, 0.24, 1) 1500ms forwards;
-}
-.intro-overlay img {
-  width: min(420px, 70vw);
-  height: auto;
-  animation: intro-logo 1900ms ease both;
-}
-.intro-skip {
-  position: absolute;
-  bottom: 2rem;
-  right: 2rem;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  border: 0;
-  background: transparent;
-  color: oklch(1 0 0 / 55%);
-  cursor: pointer;
-  font-size: 14px;
-}
-.intro-skip:hover {
-  color: #fff;
-}
-html.no-intro .intro-overlay {
-  display: none;
-}
-html.intro .hero-line > span,
-html.intro .hero-fade,
-html.intro .hero-plane {
-  animation-delay: calc(var(--d, 0ms) + 1700ms);
-}
-
-/* Landing hero: one load sequence, pure CSS. */
-@keyframes line-up {
+@keyframes slab-in {
   from {
-    transform: translateY(108%);
+    opacity: 0;
+    transform: translateX(26%) skewX(-18deg);
   }
   to {
-    transform: none;
+    opacity: 1;
+    transform: skewX(-18deg);
   }
 }
 @keyframes fade-up {
@@ -533,201 +467,227 @@ html.intro .hero-plane {
     transform: none;
   }
 }
-@keyframes plane-in {
-  from {
-    opacity: 0.001;
-    transform: translateY(64px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 .hero-line {
   display: block;
-  overflow: hidden;
-  padding-bottom: 0.1em;
-  margin-bottom: -0.1em;
 }
 .hero-line > span {
   display: block;
-  animation: line-up 1000ms cubic-bezier(0.19, 1, 0.22, 1) var(--d, 0ms) both;
+  animation: speed-in 900ms cubic-bezier(0.19, 1, 0.22, 1) var(--d, 0ms) both;
 }
 .hero-fade {
   animation: fade-up 900ms cubic-bezier(0.19, 1, 0.22, 1) var(--d, 0ms) both;
 }
-.hero-plane {
-  animation: plane-in 1400ms cubic-bezier(0.19, 1, 0.22, 1) var(--d, 0ms) both;
-}
-
-.hero {
+.hero2 {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding-top: 7rem;
+  background: var(--hero-bg);
+  color: var(--hero-ink);
+  padding: calc(var(--nav-h) + 2.5rem) 0 4.5rem;
+  transition: background-color 300ms;
 }
-.hero-glow {
+.hero2 .slab {
   position: absolute;
-  inset-inline: 0;
-  top: 46%;
   z-index: -1;
-  margin-inline: auto;
-  height: 720px;
-  max-width: 72rem;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--glow), transparent 70%);
-  filter: blur(40px);
-  pointer-events: none;
+  top: -12%;
+  bottom: -12%;
+  right: 6%;
+  width: 46%;
+  background: var(--hero-bg-2);
+  transform: skewX(-18deg);
+  animation: slab-in 1300ms cubic-bezier(0.19, 1, 0.22, 1) 200ms both;
 }
-.hero-grid-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: linear-gradient(to right, color-mix(in oklch, var(--text) 5%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklch, var(--text) 5%, transparent) 1px, transparent 1px);
-  background-size: 72px 72px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 30% 20%, #000, transparent);
-  mask-image: radial-gradient(ellipse 70% 55% at 30% 20%, #000, transparent);
-}
-.hero-cols {
+.hero2-grid {
   display: grid;
   gap: 2.5rem;
-  align-items: end;
+  align-items: center;
 }
-.hero-note {
-  font-size: 0.9rem;
-  color: color-mix(in oklch, var(--text) 62%, transparent);
+.hero2 h1 {
+  font-size: clamp(3rem, 11vw, 5rem);
+  line-height: 0.92;
+  letter-spacing: 0;
 }
-.hero h1 {
-  margin-top: 1.25rem;
-  font-size: clamp(2.5rem, 8.4vw, 5.4rem);
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+@media (min-width: 1024px) {
+  .hero2 h1 {
+    font-size: clamp(3.6rem, 5.6vw, 5.4rem);
+  }
 }
-.hero .lead {
+.hero2 .lead {
   margin-top: 1.75rem;
-  max-width: 34rem;
-  font-size: 1.125rem;
-  line-height: 1.65;
-  color: color-mix(in oklch, var(--text) 70%, transparent);
+  max-width: 30rem;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--hero-ink-2);
 }
-.hero .actions {
+.hero2 .actions {
   margin-top: 2.25rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
-.hero-facts {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem 1.5rem;
-  border-top: 1px solid var(--line);
-  padding-top: 1.5rem;
+.hero2 .btn {
+  color: var(--hero-ink);
+  border-color: oklch(1 0 0 / 50%);
 }
-.hero-facts b {
-  display: block;
-  font-family: var(--display);
-  font-weight: 500;
-  font-size: 1.9rem;
-  letter-spacing: -0.04em;
-  line-height: 1;
+.hero2 .btn:hover {
+  background: oklch(1 0 0 / 12%);
+  border-color: #fff;
 }
-.hero-facts span {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--muted);
+.hero2 .btn-primary {
+  background: #fff;
+  border-color: #fff;
+  color: var(--hero-bg);
+}
+.hero2 .btn-primary:hover {
+  background: oklch(1 0 0 / 88%);
 }
 @media (min-width: 1024px) {
-  .hero {
-    padding-top: 8rem;
+  .hero2 {
+    padding-bottom: 5.5rem;
   }
-  .hero-cols {
-    grid-template-columns: 8fr 4fr;
-  }
-  .hero-facts {
-    grid-template-columns: 1fr 1fr;
-    border-top: 0;
-    padding-top: 0;
-    padding-bottom: 0.5rem;
+  .hero2-grid {
+    grid-template-columns: 1.12fr 1fr;
+    gap: 3rem;
   }
 }
 
-/* The product plane: the real cockpit UI, tilted, flattening as you scroll. */
-.plane-wrap {
-  position: relative;
-  margin-top: 4rem;
-  perspective: 2200px;
-}
-.plane {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  border-radius: 1rem;
-  border: 1px solid var(--line-2);
-  background: var(--bg);
-  box-shadow: var(--shadow);
-  will-change: transform;
-}
-.plane-fade {
-  position: absolute;
-  z-index: 2;
-  inset-inline: 0;
-  bottom: 0;
-  height: 33%;
-  background: linear-gradient(to top, var(--bg), transparent);
-  pointer-events: none;
-}
-.plane-open {
-  position: absolute;
-  z-index: 3;
-  right: 1.25rem;
-  bottom: 2rem;
-  pointer-events: none;
-}
-.cp {
+/* The sign: a white-bordered panel holding the live detector. */
+.sign {
   display: grid;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: var(--bg);
-  pointer-events: none;
-  user-select: none;
+  border: 6px solid #fff;
+  border-radius: 1.25rem;
+  background: var(--dev);
+  color: var(--dev-text);
 }
-.cp-bar {
+:root[data-theme='dark'] .sign {
+  border-color: oklch(0.9 0.02 290);
+}
+.sign .viewport {
+  border-radius: 0.75rem;
+}
+.sign .viewport.drag {
+  outline: 2px dashed var(--dev-accent);
+  outline-offset: -6px;
+}
+.sign .btn {
+  color: var(--dev-text);
+  border-color: var(--dev-line);
+}
+.sign .btn:hover {
+  background: oklch(1 0 0 / 8%);
+  border-color: oklch(1 0 0 / 40%);
+}
+.sign .btn-primary {
+  background: #fff;
+  border-color: #fff;
+  color: oklch(0.2 0.06 290);
+}
+.sign .btn-primary:hover {
+  background: oklch(1 0 0 / 88%);
+}
+.sign .btn[disabled] {
+  background: transparent;
+  border-color: var(--dev-line);
+  color: var(--dev-muted);
+}
+.sign .btn-danger {
+  border-color: oklch(0.72 0.16 22 / 60%);
+  color: var(--dev-bad);
+}
+.sign-row {
   display: flex;
   flex-wrap: wrap;
+  gap: 0.75rem;
   align-items: center;
+  justify-content: space-between;
+}
+.sign-load p {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--dev-muted);
+}
+.sign-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-self: start;
+  padding: 0 0.25rem 0.25rem;
+  font-size: 0.9rem;
+  color: var(--dev-muted);
+}
+.sign-link:hover {
+  color: #fff;
+}
+.sign-link:hover .arrow {
+  transform: translateX(2px);
+}
+.sign-link .arrow {
+  transition: transform 300ms var(--ease);
+}
+.sign .notice {
+  color: var(--dev-text);
+}
+.plates {
+  display: flex;
   gap: 0.5rem;
-  padding: 0.25rem 0.25rem 0;
 }
-.cp-bar .spacer {
-  margin-left: auto;
+.plate {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 0.4rem;
+  border: 2px solid currentColor;
+  background: oklch(0.97 0.004 90);
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: oklch(0.2 0.01 280);
 }
-.cp-body {
-  display: grid;
-  gap: 0.75rem;
+.plate b {
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
-.cp-col {
+.plate.ok {
+  border-color: oklch(0.55 0.15 162);
+}
+.plate.ok b {
+  color: oklch(0.45 0.14 162);
+}
+.plate.bad {
+  border-color: oklch(0.58 0.2 25);
+}
+.plate.bad b {
+  color: oklch(0.5 0.2 25);
+}
+
+/* Over the violet hero the nav is white; once you scroll it takes the theme colours. */
+.nav.on-hero:not(.solid):not(.open) {
+  color: var(--hero-ink);
+}
+.nav.on-hero:not(.solid):not(.open) .theme-art-day {
   display: none;
-  gap: 0.75rem;
-  align-content: start;
 }
-.cp-counters {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
+.nav.on-hero:not(.solid):not(.open) .theme-art-night {
+  display: block;
 }
-@media (min-width: 900px) {
-  .cp-body {
-    grid-template-columns: 15rem minmax(0, 1fr) 17rem;
-  }
-  .cp-col {
-    display: grid;
-  }
+.nav.on-hero:not(.solid):not(.open) .nav-links a,
+.nav.on-hero:not(.solid):not(.open) .icon-btn {
+  color: var(--hero-ink-2);
+}
+.nav.on-hero:not(.solid):not(.open) .nav-links a:hover,
+.nav.on-hero:not(.solid):not(.open) .icon-btn:hover {
+  color: #fff;
+}
+.nav.on-hero:not(.solid):not(.open) .btn-primary {
+  background: #fff;
+  border-color: #fff;
+  color: var(--hero-bg);
 }
 
 /* Sections */
@@ -736,7 +696,6 @@ html.intro .hero-plane {
 }
 .section.alt {
   background: var(--bg-2);
-  border-block: 1px solid var(--line);
 }
 .section-head {
   max-width: 40rem;
@@ -765,18 +724,6 @@ html.intro .hero-plane {
 .step {
   position: relative;
   padding-left: 4.25rem;
-}
-.step::before {
-  content: '';
-  position: absolute;
-  left: 1.4rem;
-  top: 3.25rem;
-  bottom: -2.25rem;
-  width: 1px;
-  background: linear-gradient(var(--line-2), transparent);
-}
-.step:last-child::before {
-  display: none;
 }
 .step-n {
   position: absolute;
@@ -811,16 +758,7 @@ html.intro .hero-plane {
     padding-left: 0;
     padding-top: 4.25rem;
   }
-  .step::before {
-    left: 3.5rem;
-    right: -2rem;
-    top: 1.4rem;
-    bottom: auto;
-    width: auto;
-    height: 1px;
-    background: linear-gradient(90deg, var(--line-2), transparent);
   }
-}
 
 /* Tiles: border and backdrop light up under the cursor (pointer position is written straight to CSS). */
 .tiles {
@@ -836,17 +774,8 @@ html.intro .hero-plane {
   padding: 1.75rem;
   min-width: 0;
 }
-.tile::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 500ms;
-  pointer-events: none;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklch, var(--accent) 16%, transparent), transparent 60%);
-}
-.tile:hover::before {
-  opacity: 1;
+.tile:hover {
+  background: var(--surface-2);
 }
 .tile h3 {
   font-size: 1.65rem;
@@ -875,14 +804,46 @@ html.intro .hero-plane {
 .tile.dark > p {
   color: var(--dev-muted);
 }
-.tile-mark {
+/* Photos the page picks up when the files exist in public/ (see web/ASSETS_NEEDED.md). */
+.tile-photo {
   position: absolute;
-  right: -2%;
-  top: 6%;
-  width: 46%;
-  max-width: 260px;
-  opacity: 0.95;
+  inset: 0 0 0 42%;
+  width: 58%;
+  height: 100%;
+  object-fit: cover;
   pointer-events: none;
+}
+.tile.dark:has(.tile-photo) > h3,
+.tile.dark:has(.tile-photo) > p,
+.tile.dark:has(.tile-photo) > .legend-boxes {
+  position: relative;
+  max-width: 24rem;
+}
+.idle-photo,
+.poster-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+}
+.poster-photo {
+  opacity: 0.65;
+}
+.cta-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.cta-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.35;
 }
 .legend-boxes {
   display: flex;
@@ -981,7 +942,7 @@ html.intro .hero-plane {
 .tile-split {
   display: grid;
   gap: 2rem;
-  align-items: center;
+  align-items: start;
 }
 .model-rows {
   list-style: none;
@@ -1007,7 +968,7 @@ html.intro .hero-plane {
 .mr-size {
   grid-row: 1;
   grid-column: 2;
-  font-family: var(--mono);
+  font-family: var(--font);
   font-size: 0.8rem;
   color: var(--muted);
   align-self: center;
@@ -1066,7 +1027,7 @@ html.intro .hero-plane {
   letter-spacing: -0.03em;
 }
 .m-name small {
-  font-family: var(--mono);
+  font-family: var(--font);
   font-size: 0.75rem;
   letter-spacing: 0;
   color: var(--muted);
@@ -1101,7 +1062,6 @@ html.intro .hero-plane {
   overflow: hidden;
   background: var(--dev);
   isolation: isolate;
-  box-shadow: var(--shadow);
 }
 .trailer-frame video {
   position: absolute;
@@ -1119,18 +1079,7 @@ html.intro .hero-plane {
   text-align: center;
   padding: 1.5rem;
   color: var(--dev-text);
-  background: radial-gradient(50% 60% at 50% 120%, oklch(0.55 0.15 290 / 0.4), transparent 70%), linear-gradient(180deg, oklch(0.11 0.006 280), oklch(0.16 0.012 280));
-}
-.poster::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(90deg, transparent 0 calc(50% - 1px), oklch(1 0 0 / 8%) calc(50% - 1px) 50%, transparent 50% 100%);
-  mask-image: linear-gradient(180deg, transparent 40%, #000 100%);
-  -webkit-mask-image: linear-gradient(180deg, transparent 40%, #000 100%);
-  transform: perspective(500px) rotateX(58deg) scale(2.4);
-  transform-origin: 50% 100%;
-  opacity: 0.8;
+  background: var(--dev);
 }
 .poster-inner {
   position: relative;
@@ -1214,7 +1163,6 @@ html.intro .hero-plane {
 
 /* Footer */
 .footer {
-  border-top: 1px solid var(--line);
   padding-block: 4rem 2.5rem;
   background: var(--bg-2);
 }
@@ -1250,8 +1198,6 @@ html.intro .hero-plane {
 }
 .footer-base {
   margin-top: 3rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--line);
   color: var(--faint);
   font-size: 0.85rem;
 }
@@ -1289,12 +1235,9 @@ html.static .reveal {
   html {
     scroll-behavior: auto;
   }
-  .intro-overlay {
-    display: none;
-  }
   .hero-line > span,
   .hero-fade,
-  .hero-plane {
+  .hero2 .slab {
     animation: none;
   }
   html.theme-fade,
@@ -1304,7 +1247,6 @@ html.static .reveal {
     transition: none !important;
   }
   .btn,
-  .tile::before,
   .icon-btn svg {
     transition: none;
   }
@@ -1315,7 +1257,7 @@ html.static .reveal {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: radial-gradient(60% 40% at 50% 0%, var(--glow), transparent 70%), var(--bg);
+  background: var(--bg);
 }
 .cockpit-bar {
   display: flex;
@@ -1324,10 +1266,7 @@ html.static .reveal {
   gap: 0.6rem 0.9rem;
   padding: 0.6rem 1rem;
   min-height: var(--nav-h);
-  border-bottom: 1px solid var(--line);
-  background: var(--nav-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-2);
 }
 .cockpit-bar .logo img {
   height: 1.9rem;
@@ -1386,7 +1325,6 @@ html.static .reveal {
   border: 1px solid var(--dev-line);
   border-radius: 1rem;
   overflow: hidden;
-  box-shadow: var(--shadow);
 }
 .viewport .frame {
   position: relative;
@@ -1410,9 +1348,8 @@ html.static .reveal {
 .viewport.idle canvas {
   visibility: hidden;
 }
-.viewport.idle .frame,
-.cp .viewport .frame {
-  background: linear-gradient(var(--dev-line) 1px, transparent 1px) 0 0 / 56px 56px, linear-gradient(90deg, var(--dev-line) 1px, transparent 1px) 0 0 / 56px 56px, radial-gradient(60% 70% at 50% 100%, oklch(0.55 0.15 290 / 0.3), transparent 70%);
+.viewport.idle .frame {
+  background: var(--dev);
 }
 .viewport-empty {
   position: relative;
@@ -1467,7 +1404,7 @@ html.static .reveal {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-family: var(--mono);
+  font-family: var(--font);
   font-size: 12.5px;
   color: var(--muted);
 }
@@ -1621,7 +1558,7 @@ input[type='range']::-moz-range-thumb {
   font-size: 0.9rem;
 }
 .events .t {
-  font-family: var(--mono);
+  font-family: var(--font);
   color: var(--faint);
   font-size: 0.78rem;
 }
@@ -1635,7 +1572,7 @@ input[type='range']::-moz-range-thumb {
   color: var(--bad);
 }
 .events .s {
-  font-family: var(--mono);
+  font-family: var(--font);
   color: var(--muted);
   font-size: 0.78rem;
 }
@@ -1692,7 +1629,7 @@ input[type='range']::-moz-range-thumb {
   color: var(--muted);
 }
 .kv b {
-  font-family: var(--mono);
+  font-family: var(--font);
   font-weight: 500;
   font-size: 0.8rem;
   color: var(--text);
@@ -1709,7 +1646,7 @@ input[type='range']::-moz-range-thumb {
   justify-content: space-between;
 }
 .field label b {
-  font-family: var(--mono);
+  font-family: var(--font);
   font-weight: 500;
   color: var(--text);
 }
@@ -1773,4 +1710,201 @@ input[type='range']::-moz-range-thumb {
 }
 .notfound h1 {
   font-size: clamp(2.6rem, 8vw, 5rem);
+}
+
+/* Type system: heavy condensed uppercase, like the wordmark. Placed last so it wins over earlier tracking. */
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  line-height: 0.92;
+}
+.section-head h2,
+.teaser h2,
+.cta-band h2,
+.page-title h1,
+.notfound h1 {
+  font-size: clamp(2.5rem, 6.2vw, 4.6rem);
+  letter-spacing: 0.005em;
+  line-height: 0.92;
+}
+.page-title h1 {
+  font-size: clamp(2.8rem, 8vw, 5.4rem);
+}
+.tile h3,
+.step h3 {
+  font-size: 1.75rem;
+  letter-spacing: 0.01em;
+}
+.panel h2 {
+  text-transform: none;
+  font-weight: 500;
+}
+.status-line,
+.counter .v,
+.m-name,
+.mr-name {
+  letter-spacing: 0.01em;
+}
+.status-line {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.35rem;
+}
+.counter .v {
+  font-weight: 700;
+}
+.step-n {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+  place-items: start;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 0.8;
+  color: var(--accent);
+}
+.tile,
+.model-rows li,
+.counter {
+  border-radius: var(--r);
+}
+.tile {
+  border-radius: 1rem;
+}
+
+/* Surfaces are defined by fill, not by 1px outlines. Last in the file so it wins over earlier borders. */
+.btn,
+.chip,
+.tile,
+.panel,
+.counter,
+.model-rows li,
+.events li,
+.status-line,
+.notice,
+.hud .chip,
+.legend-box {
+  border-color: transparent;
+}
+.btn {
+  background: color-mix(in oklch, var(--text) 9%, transparent);
+}
+.btn:hover {
+  background: color-mix(in oklch, var(--text) 16%, transparent);
+  border-color: transparent;
+}
+.btn-primary {
+  background: var(--text);
+}
+.btn-primary:hover {
+  background: color-mix(in oklch, var(--text) 86%, var(--bg));
+}
+.btn-danger {
+  background: color-mix(in oklch, var(--bad) 14%, transparent);
+}
+.btn-danger:hover {
+  background: color-mix(in oklch, var(--bad) 24%, transparent);
+  border-color: transparent;
+}
+.chip {
+  background: color-mix(in oklch, var(--text) 8%, transparent);
+}
+.chip.ok {
+  background: color-mix(in oklch, var(--ok) 14%, transparent);
+}
+.chip.accent {
+  background: var(--accent-soft);
+}
+.hero2 .btn {
+  background: oklch(1 0 0 / 14%);
+  border-color: transparent;
+}
+.hero2 .btn:hover {
+  background: oklch(1 0 0 / 24%);
+}
+.hero2 .btn-primary {
+  background: #fff;
+}
+.sign .btn {
+  background: oklch(1 0 0 / 10%);
+  border-color: transparent;
+}
+.sign .btn-primary {
+  background: #fff;
+}
+.sign .btn[disabled] {
+  background: oklch(1 0 0 / 6%);
+}
+.nav.on-hero:not(.solid):not(.open) .btn-primary {
+  background: #fff;
+}
+.tile {
+  background: var(--surface-2);
+}
+.tile.dark {
+  background: var(--dev);
+}
+.tile:hover {
+  background: color-mix(in oklch, var(--surface-2) 88%, var(--text));
+}
+.tile.dark:hover {
+  background: var(--dev);
+}
+.section.alt .tile {
+  background: var(--surface);
+}
+.model-rows li,
+.counter,
+.events li {
+  background: var(--surface-2);
+}
+.panel .counter {
+  background: var(--surface-2);
+}
+.status-line {
+  background: var(--surface-2);
+}
+.model-opt {
+  border: 2px solid transparent;
+  background: var(--surface-2);
+}
+.model-opt:hover {
+  border-color: color-mix(in oklch, var(--text) 25%, transparent);
+}
+.model-opt:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.empty {
+  border: 0;
+  background: var(--surface-2);
+}
+.legend-box {
+  background: color-mix(in oklch, currentColor 14%, transparent);
+}
+.viewport,
+.trailer-frame {
+  border-color: transparent;
+}
+/* Nothing meant to be read is smaller than 13px. */
+.sign-load p,
+.tile small,
+.counter small,
+.m-name small,
+.events .t,
+.events .s,
+.mr-size,
+.note-small,
+.gauge figcaption,
+.mr-blurb,
+.m-blurb,
+.kv b,
+.seek,
+.chip,
+.plate {
+  font-size: max(0.8125rem, 13px);
 }

@@ -30,6 +30,7 @@ function ScrollManager() {
 function Nav() {
   const [open, setOpen] = useState(false)
   const [solid, setSolid] = useState(false)
+  const { pathname } = useLocation()
   const { scrollY } = useScroll()
   useMotionValueEvent(scrollY, 'change', (v) => setSolid(v > 24))
   const close = () => setOpen(false)
@@ -41,7 +42,7 @@ function Nav() {
   }, [open])
 
   return (
-    <header className={`nav${solid ? ' solid' : ''}${open ? ' open' : ''}`}>
+    <header className={`nav${solid ? ' solid' : ''}${open ? ' open' : ''}${pathname === '/' ? ' on-hero' : ''}`}>
       <div className="container nav-inner">
         <Logo />
         <nav className="nav-links" aria-label="Primary">

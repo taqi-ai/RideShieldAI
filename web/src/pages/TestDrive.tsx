@@ -12,7 +12,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import { Gauge } from '../components/Gauge'
-import { Logo, MarkNight } from '../components/Logo'
+import { Logo } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { BRAND } from '../config/brand'
 import { useDetectionSession } from '../hooks/useDetectionSession'
@@ -145,7 +145,6 @@ export default function TestDrive() {
               <canvas ref={canvasRef} aria-hidden="true" />
               {idle && (
                 <div className="viewport-empty">
-                  <MarkNight />
                   <h3>{eng.status === 'error' ? 'The model could not start' : 'Pick a source to begin'}</h3>
                   <p>
                     {eng.status === 'error'

@@ -20,8 +20,3 @@ export function Logo({ variant = 'lockup', to = '/' }: { variant?: Variant; to?:
     </Link>
   )
 }
-
-// Helmet mark on dark instrument surfaces (always the night art).
-export function MarkNight({ className }: { className?: string }) {
-  return <img className={className} src="/brand/mark-night.png" width={381} height={376} alt="" />
-}
