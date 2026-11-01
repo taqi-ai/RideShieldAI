@@ -63,7 +63,7 @@ cd web
 npx vercel deploy --prod      # needs `vercel login`; project is linked as rideshield-ai
 ```
 
-Or connect the GitHub repository in the Vercel dashboard with root directory `web`; the build command, output directory and framework come from `vercel.json`. The Hobby plan is for personal, non-commercial use, so move to another host if this becomes a commercial product. The project name and URL change when the product name does (Project Settings > General).
+Or connect the GitHub repository in the Vercel dashboard with root directory `web`; the build command, output directory and framework come from `vercel.json`. The Hobby plan is for personal, non-commercial use, so move to another host if this becomes a commercial product. The `rideshield-ai` project name matches the final product name.
 
 ## 4b. Cloudflare Pages build settings (alternative)
 
@@ -107,4 +107,4 @@ The demo uses only static hosting (Cloudflare Pages Free), the free `*.pages.dev
 
 - **Licence:** Ultralytics YOLO weights and code are AGPL-3.0 (or a paid enterprise licence). Publishing the weights and a site built on them has obligations. Review before going public. No licence text was changed.
 - **Repository data:** `database/rideshield.db` (24 MB) is tracked in git even though `*.db` is in `.gitignore`, and `assets/captures/` holds 541 photos of people. Check both before making the repository public.
-- **Branding:** name, tagline, logo mark and repository URL are placeholders held in `src/config/brand.ts` and `src/components/Logo.tsx`.
+- **Logo:** the mark is a placeholder. To swap it, replace the SVG in `src/components/Logo.tsx` and `public/favicon.svg`. The tagline in `src/config/brand.ts` is provisional.

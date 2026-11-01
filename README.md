@@ -7,7 +7,7 @@ AI helmet detection for road safety. The repository has two parts that share the
 | Web experience | [`web/`](web/) | Public website with an in-browser test drive. The YOLO model runs on the visitor's device with ONNX Runtime Web. No backend, free to host. |
 | Desktop app | `main.py`, `src/` | PyQt6 instrument-cluster app that runs Ultralytics YOLO on a local camera and logs events to SQLite. |
 
-The name, tagline and logo are placeholders and may change. On the web side they live in `web/src/config/brand.ts` and `web/src/components/Logo.tsx`.
+The name is **RideShield AI** (final). The logo is a placeholder until the final mark is ready; on the web side it lives in `web/src/components/Logo.tsx` and `web/public/favicon.svg`, and identity text is in `web/src/config/brand.ts`.
 
 ## Web experience
 

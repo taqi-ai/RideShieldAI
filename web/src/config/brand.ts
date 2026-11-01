@@ -1,5 +1,5 @@
-// Single source of truth for identity. Name, tagline, logo text and links are NOT final:
-// change them here (and the mark in components/Logo.tsx) and the whole site follows.
+// Single source of truth for identity. The name "RideShield AI" is final. The tagline is
+// provisional, and the logo mark (components/Logo.tsx, public/favicon.svg) is a placeholder.
 export const BRAND = {
   name: 'RideShield AI',
   short: 'RideShield',
