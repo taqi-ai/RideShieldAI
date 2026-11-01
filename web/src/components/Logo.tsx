@@ -1,24 +1,27 @@
 import { Link } from 'react-router-dom'
 import { BRAND } from '../config/brand'
 
-// Placeholder mark (shield + gauge arc). Replace this file's SVG when the final logo is ready.
-export function LogoMark({ size = 30 }: { size?: number }) {
+// Logo art lives in public/brand (built from "ai assets/logo full.png" by
+// web/scripts/build_brand_assets.py). Night art shows on dark, day art on light; the swap is pure CSS
+// keyed on the theme attribute, so there is no flash on load.
+type Variant = 'lockup' | 'full'
+
+const ART: Record<Variant, { night: string; day: string; w: number; h: number }> = {
+  lockup: { night: '/brand/lockup-night.png', day: '/brand/lockup-day.png', w: 1280, h: 376 },
+  full: { night: '/brand/logo-night.png', day: '/brand/logo-day.png', w: 1068, h: 376 },
+}
+
+export function Logo({ variant = 'lockup', to = '/' }: { variant?: Variant; to?: string }) {
+  const a = ART[variant]
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <path d="M16 2.5 4.5 6.6v8.2c0 7 4.6 11.9 11.5 14.7 6.9-2.8 11.5-7.7 11.5-14.7V6.6L16 2.5Z" stroke="#c4b8ff" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M9.6 17.6a6.4 6.4 0 1 1 12.8 0" stroke="#8f73ff" strokeWidth="2.2" strokeLinecap="round" />
-      <path d="m16 17.6 3.6-4.4" stroke="#ecebf4" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="16" cy="17.6" r="1.5" fill="#ecebf4" />
-    </svg>
+    <Link to={to} className="logo" aria-label={`${BRAND.name} home`}>
+      <img className="theme-art-night" src={a.night} width={a.w} height={a.h} alt="" />
+      <img className="theme-art-day" src={a.day} width={a.w} height={a.h} alt="" />
+    </Link>
   )
 }
 
-export function Logo({ to = '/' }: { to?: string }) {
-  return (
-    <Link to={to} className="logo" aria-label={`${BRAND.name} home`}>
-      <LogoMark />
-      <span>{BRAND.short}</span>
-      <span className="ai">AI</span>
-    </Link>
-  )
+// Helmet mark on dark instrument surfaces (always the night art).
+export function MarkNight({ className }: { className?: string }) {
+  return <img className={className} src="/brand/mark-night.png" width={381} height={376} alt="" />
 }

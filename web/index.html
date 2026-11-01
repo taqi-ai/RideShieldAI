@@ -1,15 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/brand/favicon-48.png" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0a0e" />
+    <meta name="theme-color" content="#0a0a0f" />
     <title>RideShield AI | Helmet detection that runs in your browser</title>
     <meta name="description" content="RideShield AI detects helmet use in traffic footage with a YOLO model that runs entirely in your browser." />
     <meta property="og:title" content="RideShield AI" />
     <meta property="og:description" content="Helmet detection for safer roads. The model runs in your browser; nothing is uploaded." />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="/brand/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Set the theme before first paint so there is no flash: saved choice, else the OS setting, else night.
+      (function () {
+        var t = null
+        try { t = localStorage.getItem('rideshield-theme') } catch (e) {}
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+        }
+        document.documentElement.setAttribute('data-theme', t)
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

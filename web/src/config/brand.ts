@@ -1,5 +1,6 @@
 // Single source of truth for identity. The name "RideShield AI" is final. The tagline is
-// provisional, and the logo mark (components/Logo.tsx, public/favicon.svg) is a placeholder.
+// provisional. Logo art is generated from "ai assets/logo full.png" into public/brand by
+// web/scripts/build_brand_assets.py (day and night versions, favicons, social image).
 export const BRAND = {
   name: 'RideShield AI',
   short: 'RideShield',

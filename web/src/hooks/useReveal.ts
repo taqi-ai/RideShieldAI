@@ -7,7 +7,8 @@ export function useReveal() {
   const { pathname } = useLocation()
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>('.reveal'))
-    if (!('IntersectionObserver' in window)) {
+    // ?static shows everything at once (printing, screenshots, tests).
+    if (!('IntersectionObserver' in window) || new URLSearchParams(location.search).has('static')) {
       els.forEach((e) => e.classList.add('in'))
       return
     }

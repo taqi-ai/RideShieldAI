@@ -107,4 +107,4 @@ The demo uses only static hosting (Cloudflare Pages Free), the free `*.pages.dev
 
 - **Licence:** Ultralytics YOLO weights and code are AGPL-3.0 (or a paid enterprise licence). Publishing the weights and a site built on them has obligations. Review before going public. No licence text was changed.
 - **Repository data:** `database/rideshield.db` (24 MB) is tracked in git even though `*.db` is in `.gitignore`, and `assets/captures/` holds 541 photos of people. Check both before making the repository public.
-- **Logo:** the mark is a placeholder. To swap it, replace the SVG in `src/components/Logo.tsx` and `public/favicon.svg`. The tagline in `src/config/brand.ts` is provisional.
+- **Logo and themes:** the site has night and day themes (follows the OS, with a toggle that is remembered). Logos come from `ai assets/logo full.png` via `scripts/build_brand_assets.py`, which writes `public/brand`. The tagline in `src/config/brand.ts` is provisional.

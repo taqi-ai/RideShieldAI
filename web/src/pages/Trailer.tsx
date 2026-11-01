@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowsOut, Play, SpeakerHigh, SpeakerSlash, Pause, FilmSlate } from '@phosphor-icons/react'
 import { BRAND } from '../config/brand'
+import { MarkNight } from '../components/Logo'
 import { usePageMeta } from '../hooks/usePageMeta'
 
 type Availability = 'checking' | 'available' | 'missing'
@@ -113,7 +114,8 @@ export default function Trailer() {
                 <span className="chip" role="status">Checking for the trailer</span>
               ) : (
                 <>
-                  <span className="chip violet">30-SECOND FILM IN PRODUCTION</span>
+                  <MarkNight />
+                  <span className="chip">30-second film in production</span>
                   <h3>Trailer Coming Soon</h3>
                   <p>{error ?? 'When the film is added, it plays right here.'}</p>
                 </>

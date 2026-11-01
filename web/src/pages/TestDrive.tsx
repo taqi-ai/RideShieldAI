@@ -12,7 +12,8 @@ import {
   X,
 } from '@phosphor-icons/react'
 import { Gauge } from '../components/Gauge'
-import { LogoMark } from '../components/Logo'
+import { Logo, MarkNight } from '../components/Logo'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { BRAND } from '../config/brand'
 import { useDetectionSession } from '../hooks/useDetectionSession'
 import { DEFAULT_MODEL } from '../inference/models'
@@ -59,12 +60,9 @@ export default function TestDrive() {
         <Link to="/" className="back-link" aria-label="Back to the RideShield home page">
           <ArrowLeft size={18} /> Home
         </Link>
-        <span className="logo" style={{ fontSize: 16 }}>
-          <LogoMark size={26} /> {BRAND.short}
-          <span className="ai">AI</span>
-        </span>
+        <Logo />
         <span className="spacer" />
-        {eng.status === 'loading' && <span className="chip violet" role="status">Loading model</span>}
+        {eng.status === 'loading' && <span className="chip accent" role="status">Loading model</span>}
         {eng.status === 'error' && <span className="chip bad">Model failed</span>}
         {ready && (
           <>
@@ -73,6 +71,7 @@ export default function TestDrive() {
           </>
         )}
         <span className="chip">Model <b>{DEFAULT_MODEL.label}</b></span>
+        <ThemeToggle />
       </header>
 
       <main className="cockpit-grid" id="main">
@@ -81,23 +80,21 @@ export default function TestDrive() {
           <section className="panel" aria-labelledby="inst">
             <h2 id="inst">Instruments</h2>
             <div className="gauge-wrap">
-              <Gauge value={stats.fps} max={30} label="Inference FPS" decimals={1} size={230} idle={stats.frames === 0} />
+              <Gauge value={stats.fps} max={30} label="Inference FPS" decimals={1} size={250} idle={stats.frames === 0} />
             </div>
-            <div className="gauge-row" style={{ marginTop: 6 }}>
-              <Gauge value={stats.latencyMs} max={500} label="Latency" unit="ms" size={120} idle={stats.frames === 0} tone="violet" />
+            <div className="gauge-row" style={{ marginTop: 8 }}>
+              <Gauge value={stats.latencyMs} max={500} label="Latency" unit="ms" size={130} idle={stats.frames === 0} />
               <Gauge
                 value={(stats.lastScore ?? 0) * 100}
                 max={100}
                 label="Top conf."
                 unit="%"
-                size={120}
+                size={130}
                 idle={stats.lastScore === null}
                 tone="ok"
               />
             </div>
-            <p style={{ color: 'var(--faint)', fontSize: 12.5, marginTop: 10 }}>
-              The dial shows model throughput, not vehicle speed. Values are measured on this device.
-            </p>
+            <p className="note-small">The dial shows model throughput, not vehicle speed. Values are measured on this device.</p>
           </section>
 
           <section className="panel" aria-labelledby="eng">
@@ -110,7 +107,7 @@ export default function TestDrive() {
               <div>Backend <b>{ready ? (eng.info.backend === 'webgpu' ? 'WebGPU' : 'WebAssembly') : '...'}</b></div>
             </div>
             {ready && eng.info.backend === 'wasm' && (
-              <p style={{ color: 'var(--faint)', fontSize: 12.5, marginTop: 10 }}>{eng.info.webgpuNote}</p>
+              <p className="note-small">{eng.info.webgpuNote}</p>
             )}
           </section>
         </div>
@@ -123,7 +120,7 @@ export default function TestDrive() {
               <canvas ref={canvasRef} aria-hidden="true" />
               {idle && (
                 <div className="viewport-empty">
-                  <FilmStrip size={40} />
+                  <MarkNight />
                   <h3>{eng.status === 'error' ? 'The model could not start' : 'Pick a source to begin'}</h3>
                   <p>
                     {eng.status === 'error'

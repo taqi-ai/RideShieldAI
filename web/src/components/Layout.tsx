@@ -4,6 +4,7 @@ import { GithubLogo, List, X } from '@phosphor-icons/react'
 import { BRAND } from '../config/brand'
 import { useReveal } from '../hooks/useReveal'
 import { Logo } from './Logo'
+import { ThemeToggle } from './ThemeToggle'
 
 const LINKS = [
   { to: '/#product', label: 'Product' },
@@ -52,12 +53,15 @@ function Nav() {
             ),
           )}
         </nav>
-        <Link to="/test-drive" className="btn btn-primary btn-sm nav-cta">
-          Experience RideShield
-        </Link>
-        <button className="nav-toggle" aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen((o) => !o)}>
-          {open ? <X size={22} /> : <List size={22} />}
-        </button>
+        <div className="nav-end">
+          <ThemeToggle />
+          <Link to="/test-drive" className="btn btn-primary btn-sm nav-cta">
+            Experience RideShield
+          </Link>
+          <button className="icon-btn nav-toggle" aria-expanded={open} aria-controls="mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen((o) => !o)}>
+            {open ? <X size={22} /> : <List size={22} />}
+          </button>
+        </div>
       </div>
       {open && (
         <nav id="mobile-menu" className="nav-menu" aria-label="Primary mobile">
@@ -81,7 +85,7 @@ function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <Logo />
+            <Logo variant="full" />
             <p className="note">
               The live test processes media in your browser. Webcam frames and uploaded videos stay on your device and are never sent to a server.
             </p>

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 const dist = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const LIMIT = 25 * 1024 * 1024
-const required = ['index.html', 'models/helmet_yolo26n.dynamic.onnx', 'favicon.svg', '_headers']
+const required = ['index.html', 'models/helmet_yolo26n.dynamic.onnx', 'brand/logo-night.png', 'brand/logo-day.png', 'brand/favicon-32.png', '_headers']
 
 const walk = (dir) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]))
