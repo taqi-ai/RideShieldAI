@@ -54,7 +54,8 @@ export default function TestDrive() {
 
   return (
     <div className="cockpit">
-      <div className="cockpit-bar">
+      <header className="cockpit-bar">
+        <h1 className="sr-only">RideShield AI test drive: helmet detection in your browser</h1>
         <Link to="/" className="back-link" aria-label="Back to the RideShield home page">
           <ArrowLeft size={18} /> Home
         </Link>
@@ -72,9 +73,9 @@ export default function TestDrive() {
           </>
         )}
         <span className="chip">Model <b>{DEFAULT_MODEL.label}</b></span>
-      </div>
+      </header>
 
-      <div className="cockpit-grid">
+      <main className="cockpit-grid" id="main">
         {/* Left: instruments */}
         <div className="col-left">
           <section className="panel" aria-labelledby="inst">
@@ -304,7 +305,7 @@ export default function TestDrive() {
             </div>
           </section>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
