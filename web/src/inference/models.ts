@@ -1,4 +1,4 @@
-﻿// Describes the ONNX assets that ship with the site. Values come from the real export
+// Describes the ONNX assets that ship with the site. Values come from the real export
 // (see DEPLOYMENT.md): input 1x3x640x640 float32 RGB 0..1, classes from the trained weights.
 export interface ModelSpec {
   id: string

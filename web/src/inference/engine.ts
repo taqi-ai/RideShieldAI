@@ -1,4 +1,4 @@
-﻿import type { InferenceSession, Tensor } from 'onnxruntime-web'
+import type { InferenceSession, Tensor } from 'onnxruntime-web'
 import type { ModelSpec } from './models'
 
 export type Backend = 'webgpu' | 'wasm'

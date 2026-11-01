@@ -25,13 +25,15 @@ npm run preview    # serve the production build locally
 - **Engine:** WebGPU when the browser supports it, WebAssembly otherwise. `/test-drive?backend=wasm` forces WebAssembly.
 - **Model:** `web/public/models/helmet_yolo26n.dynamic.onnx` (9.6 MiB), exported from `models/helmet_yolo26n.pt`. Re-export with `npm run export:model` from `web/`.
 - **Counters:** boxes are counted per frame, and unique riders are counted separately with a simple tracker. Nothing shown is simulated; the gauges show measured model throughput, not vehicle speed.
-- **Hosting:** Cloudflare Pages Free. Build settings, GitHub connection steps, how to add the trailer, model sizes and known limits are in [`web/DEPLOYMENT.md`](web/DEPLOYMENT.md).
+- **Hosting:** live on Vercel Hobby (free) at https://rideshield-ai.vercel.app. Cloudflare Pages Free also works and its settings are documented. Build settings, how to add the trailer, model sizes and known limits are in [`web/DEPLOYMENT.md`](web/DEPLOYMENT.md).
 
 ### What has and has not been verified
 
 Verified: the browser model gives the same detections as the PyTorch weights on test photos; uploaded-video analysis works on WebGPU and WebAssembly from the production build; denied-camera and invalid-file messages; no horizontal scroll at phone width.
 
-Not yet verified: live webcam capture, trailer fullscreen, Safari and Firefox, real phones, and an actual Cloudflare deployment.
+Verified on the live Vercel site: direct load of `/test-drive`, cross-origin isolation, WebGPU engine and model loading.
+
+Not yet verified: live webcam capture, trailer fullscreen, Safari and Firefox, real phones, and a Cloudflare Pages deployment.
 
 ## Desktop app
 

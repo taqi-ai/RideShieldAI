@@ -54,7 +54,18 @@ To repeat a check yourself: open `/test-drive`, wait for "System ready", choose 
 
 Not verified here: live webcam capture (blocked in the test browser), fullscreen on the trailer page, Safari and Firefox, and phones.
 
-## 4. Cloudflare Pages build settings
+## 4a. Vercel (currently deployed)
+
+Live at https://rideshield-ai.vercel.app (Vercel Hobby plan, free). Config is `web/vercel.json`: it sets the cross-origin isolation headers, cache lifetimes and a single-page-app rewrite so `/test-drive` and `/trailer` work on refresh.
+
+```bash
+cd web
+npx vercel deploy --prod      # needs `vercel login`; project is linked as rideshield-ai
+```
+
+Or connect the GitHub repository in the Vercel dashboard with root directory `web`; the build command, output directory and framework come from `vercel.json`. The Hobby plan is for personal, non-commercial use, so move to another host if this becomes a commercial product. The project name and URL change when the product name does (Project Settings > General).
+
+## 4b. Cloudflare Pages build settings (alternative)
 
 | Setting | Value |
 |---|---|

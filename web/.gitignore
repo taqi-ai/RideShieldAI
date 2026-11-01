@@ -26,3 +26,5 @@ dist-ssr
 
 public/_test
 .export-tmp
+.vercel
+.env*
