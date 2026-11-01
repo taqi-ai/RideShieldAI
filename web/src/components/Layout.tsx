@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { motion, useMotionValueEvent, useScroll } from 'motion/react'
 import { GithubLogo, List, X } from '@phosphor-icons/react'
 import { BRAND } from '../config/brand'
 import { useReveal } from '../hooks/useReveal'
@@ -28,6 +29,9 @@ function ScrollManager() {
 
 function Nav() {
   const [open, setOpen] = useState(false)
+  const [solid, setSolid] = useState(false)
+  const { scrollY } = useScroll()
+  useMotionValueEvent(scrollY, 'change', (v) => setSolid(v > 24))
   const close = () => setOpen(false)
   useEffect(() => {
     if (!open) return
@@ -37,7 +41,7 @@ function Nav() {
   }, [open])
 
   return (
-    <header className="nav">
+    <header className={`nav${solid ? ' solid' : ''}${open ? ' open' : ''}`}>
       <div className="container nav-inner">
         <Logo />
         <nav className="nav-links" aria-label="Primary">
@@ -64,7 +68,14 @@ function Nav() {
         </div>
       </div>
       {open && (
-        <nav id="mobile-menu" className="nav-menu" aria-label="Primary mobile">
+        <motion.nav
+          id="mobile-menu"
+          className="nav-menu"
+          aria-label="Primary mobile"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           {LINKS.map((l) => (
             <Link key={l.to} to={l.to} onClick={close}>
               {l.label}
@@ -73,7 +84,7 @@ function Nav() {
           <Link to="/test-drive" className="btn btn-primary" onClick={close}>
             Experience RideShield
           </Link>
-        </nav>
+        </motion.nav>
       )}
     </header>
   )

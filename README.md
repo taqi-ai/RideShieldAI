@@ -23,9 +23,9 @@ npm run preview    # serve the production build locally
 
 - **Privacy:** webcam frames and uploaded videos are processed in the browser and never uploaded. There is no inference server.
 - **Engine:** WebGPU when the browser supports it, WebAssembly otherwise. `/test-drive?backend=wasm` forces WebAssembly.
-- **Model:** `web/public/models/helmet_yolo26n.dynamic.onnx` (9.6 MiB), exported from `models/helmet_yolo26n.pt`. Re-export with `npm run export:model` from `web/`.
+- **Models:** a switcher in the test drive chooses between YOLO26n (default, 9.6 MiB), YOLOv8s (42.7 MiB) and YOLO11m (76.9 MiB). They are exported from the weights in `models/` into `web/public/models`; re-export with `npm run export:model` from `web/`. Only the selected model is downloaded.
 - **Counters:** boxes are counted per frame, and unique riders are counted separately with a simple tracker. Nothing shown is simulated; the gauges show measured model throughput, not vehicle speed.
-- **Hosting:** live on Vercel Hobby (free) at https://rideshield-ai.vercel.app. Cloudflare Pages Free also works and its settings are documented. Build settings, how to add the trailer, model sizes and known limits are in [`web/DEPLOYMENT.md`](web/DEPLOYMENT.md).
+- **Hosting:** live on Vercel Hobby (free) at https://rideshield-ai.vercel.app. Cloudflare Pages Free works only with the smallest model (its settings are documented). Build settings, how to add the trailer, model sizes and known limits are in [`web/DEPLOYMENT.md`](web/DEPLOYMENT.md).
 
 ### What has and has not been verified
 
@@ -74,15 +74,15 @@ The desktop app has not been changed by the website work, and I did not run it w
 
 ## Models
 
-All three weights in `models/` have the classes `helmet` and `nohelmet`.
+All three weights in `models/` have the classes `helmet` and `nohelmet`, and all three are available in both the website and the desktop app.
 
-| Weights | Size | Browser ONNX (fp32) | Used by |
-|---|---|---|---|
-| `helmet_yolo26n.pt` | 5.1 MiB | 9.6 MiB | Web (shipped) and desktop |
-| `best.pt` | 21.5 MiB | 42.7 MiB, over the 25 MiB hosting limit | Desktop |
-| `yolo11m.pt` | 38.6 MiB | 76.7 MiB, over the limit | Desktop (default) |
+| Weights | Architecture | Size | Browser ONNX (fp32) | Default in |
+|---|---|---|---|---|
+| `helmet_yolo26n.pt` | YOLO26n | 5.1 MiB | 9.6 MiB | Website |
+| `best.pt` | YOLOv8s | 21.5 MiB | 42.7 MiB | |
+| `yolo11m.pt` | YOLO11m | 38.6 MiB | 76.9 MiB | Desktop app |
 
-The web demo and the desktop app can therefore give different results unless the desktop is set to `helmet_yolo26n.pt`.
+Out of the box the website and the desktop app use different models, so their results can differ. Pick the same model in both to compare. The two bigger ONNX files are over Cloudflare Pages Free's 25 MiB file limit; they are fine on Vercel (see `web/DEPLOYMENT.md`).
 
 ## Things to decide before going public
 

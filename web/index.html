@@ -23,6 +23,17 @@
           t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
         }
         document.documentElement.setAttribute('data-theme', t)
+        // The logo curtain plays once per session, on the landing page only, and never with reduced motion.
+        var d = document.documentElement
+        try {
+          var seen = sessionStorage.getItem('rideshield-intro')
+          var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          var isStatic = location.search.indexOf('static') !== -1
+          if (isStatic) d.classList.add('static')
+          var skip = location.pathname !== '/' || isStatic
+          if (seen || reduce || skip) { d.classList.add('no-intro') }
+          else { d.classList.add('intro'); sessionStorage.setItem('rideshield-intro', '1') }
+        } catch (e) { d.classList.add('no-intro') }
       })()
     </script>
   </head>

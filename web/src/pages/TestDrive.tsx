@@ -16,7 +16,7 @@ import { Logo, MarkNight } from '../components/Logo'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { BRAND } from '../config/brand'
 import { useDetectionSession } from '../hooks/useDetectionSession'
-import { DEFAULT_MODEL } from '../inference/models'
+import { MODELS } from '../inference/models'
 import { usePageMeta } from '../hooks/usePageMeta'
 
 const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
@@ -70,13 +70,38 @@ export default function TestDrive() {
             <span className="chip">Engine <b>{eng.info.backend === 'webgpu' ? 'WebGPU' : `WASM x${eng.info.threads}`}</b></span>
           </>
         )}
-        <span className="chip">Model <b>{DEFAULT_MODEL.label}</b></span>
+        <span className="chip">Model <b>{s.spec.label}</b></span>
         <ThemeToggle />
       </header>
 
       <main className="cockpit-grid" id="main">
-        {/* Left: instruments */}
+        {/* Left: model, instruments */}
         <div className="col-left">
+          <section className="panel" aria-labelledby="mdl">
+            <h2 id="mdl">Model</h2>
+            <div className="model-list" role="radiogroup" aria-label="Detection model">
+              {MODELS.map((m) => (
+                <label key={m.id} className="model-opt">
+                  <input
+                    type="radio"
+                    name="model"
+                    value={m.id}
+                    checked={m.id === s.spec.id}
+                    onChange={() => s.selectModel(m.id)}
+                  />
+                  <span className="m-name">
+                    {m.label}
+                    <small>{mb(m.sizeBytes)} MiB</small>
+                  </span>
+                  <span className="m-blurb">{m.blurb}</span>
+                </label>
+              ))}
+            </div>
+            <p className="note-small">
+              Switching downloads the model once and stops the current source. Larger models can be more accurate but run slower.
+            </p>
+          </section>
+
           <section className="panel" aria-labelledby="inst">
             <h2 id="inst">Instruments</h2>
             <div className="gauge-wrap">
@@ -100,10 +125,10 @@ export default function TestDrive() {
           <section className="panel" aria-labelledby="eng">
             <h2 id="eng">Inference engine</h2>
             <div className="kv">
-              <div>Model <b>{DEFAULT_MODEL.id}</b></div>
-              <div>Classes <b>{DEFAULT_MODEL.classes.join(', ')}</b></div>
-              <div>Input <b>{DEFAULT_MODEL.dynamic ? `up to ${DEFAULT_MODEL.inputSize}, step 32` : `${DEFAULT_MODEL.inputSize} x ${DEFAULT_MODEL.inputSize}`}</b></div>
-              <div>File size <b>{mb(DEFAULT_MODEL.sizeBytes)} MB</b></div>
+              <div>Model <b>{s.spec.label}</b></div>
+              <div>Classes <b>{s.spec.classes.join(', ')}</b></div>
+              <div>Input <b>{s.spec.dynamic ? `up to ${s.spec.inputSize}, step 32` : `${s.spec.inputSize} x ${s.spec.inputSize}`}</b></div>
+              <div>File size <b>{mb(s.spec.sizeBytes)} MiB</b></div>
               <div>Backend <b>{ready ? (eng.info.backend === 'webgpu' ? 'WebGPU' : 'WebAssembly') : '...'}</b></div>
             </div>
             {ready && eng.info.backend === 'wasm' && (

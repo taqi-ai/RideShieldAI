@@ -8,7 +8,7 @@ The website is a static React + TypeScript + Vite app in `web/`. The YOLO model 
 cd web
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # typecheck, production build, 25 MiB asset check
+npm run build      # typecheck, production build, asset size check
 npm run preview    # serve the production build on http://localhost:4173
 npm run lint
 ```
@@ -19,26 +19,35 @@ Troubleshooting switch: `/test-drive?backend=wasm` skips WebGPU and uses WebAsse
 
 ## 2. Prepare or export the model
 
-The site ships `public/models/helmet_yolo26n.dynamic.onnx`, exported from `models/helmet_yolo26n.pt` (classes `helmet`, `nohelmet`).
+The site ships three models and the test drive has a switcher (`/test-drive?model=yolov8s` also selects one). Each is exported from a weights file in `models/` (all with classes `helmet`, `nohelmet`):
+
+| Switcher label | Weights | Trained from | ONNX file |
+|---|---|---|---|
+| YOLO26n (default) | `helmet_yolo26n.pt` | `yolo26n.pt` | `helmet_yolo26n.dynamic.onnx` |
+| YOLOv8s | `best.pt` | `yolov8s.pt` | `helmet_yolov8s.dynamic.onnx` |
+| YOLO11m | `yolo11m.pt` | `yolo11m.pt` | `helmet_yolo11m.dynamic.onnx` |
 
 ```bash
 # from the repository root, using the project's Python environment
-.venv\Scripts\python.exe web/scripts/export_model.py
+.venv\Scripts\python.exe web/scripts/export_model.py            # all three
+.venv\Scripts\python.exe web/scripts/export_model.py yolov8s    # one
 ```
 
-Then update `sizeBytes` in `web/src/inference/models.ts` if the size changed.
+Then update `sizeBytes` in `web/src/inference/models.ts` if a size changed. Only the selected model is downloaded, and switching releases the previous one.
 
 Why `dynamic=True`: Ultralytics pads non-square images only to the next multiple of 32. A fixed 640x640 export pads to a full square, which lowered confidence on the same photo from 0.90 to 0.30. The dynamic export reproduces the PyTorch results exactly (see section 3).
 
 ### Model sizes (measured)
 
-| Weights | `.pt` | ONNX (fp32) | Fits Cloudflare 25 MiB? |
-|---|---|---|---|
-| `helmet_yolo26n.pt` (shipped) | 5.1 MiB | 9.6 MiB | Yes |
-| `best.pt` | 21.5 MiB | 42.7 MiB | No |
-| `yolo11m.pt` (desktop default) | 38.6 MiB | 76.7 MiB | No |
+| Model | `.pt` | ONNX (fp32) | Fits Cloudflare 25 MiB? | Fits Vercel / GitHub (100 MB)? |
+|---|---|---|---|---|
+| YOLO26n | 5.1 MiB | 9.6 MiB | Yes | Yes |
+| YOLOv8s | 21.5 MiB | 42.7 MiB | No | Yes |
+| YOLO11m (desktop default) | 38.6 MiB | 76.9 MiB | No | Yes |
 
-`best.pt` and `yolo11m.pt` would need int8 quantization (and an accuracy re-check) to ship. They are not used by the site. The desktop app's default is `yolo11m.pt`, so web and desktop results can differ.
+Vercel is the current host, so all three ship. On Cloudflare Pages Free only YOLO26n fits: to deploy there, delete the other two ONNX files and their entries in `src/inference/models.ts` first. `npm run build` prints a note for every file over 25 MiB and fails above 100 MB. GitHub warns above 50 MB per file; the YOLO11m file is 76.9 MiB, so move the larger models to Git LFS or a release asset if the repository grows. Int8 quantization would shrink them but was not tried; it needs an accuracy check and is not supported by the WebGPU backend.
+
+The desktop app's default is `yolo11m.pt`; the website defaults to YOLO26n, so out-of-the-box results can differ between them.
 
 The UI reads the model name, size and class names from `src/inference/models.ts`, which matches the exported file.
 
@@ -49,6 +58,7 @@ Verified in this repository (Chromium-based browser, Windows, WebGPU available):
 - The same four captured photos give identical results in PyTorch (`.pt`, rectangular padding), ONNX Runtime CPU in Python, and the browser on WebGPU: `nohelmet 0.90`, `nohelmet 0.90`, `helmet 0.36`, no detection.
 - A 15-second test clip uploaded through the UI produced real boxes, tracked counts and events on both WebGPU (about 20 ms per frame) and WebAssembly (about 115 ms per frame, 4 threads).
 - Both worked from the production build served with `npm run preview`, loaded directly at `/test-drive`.
+- YOLOv8s and YOLO11m (raw output, decoded in the browser with NMS) match their PyTorch weights exactly on the same four photos when run on CPU in Python, and both ran the test clip through the switcher in the browser on WebGPU with tracked counts and events (about 32 ms and 43 ms per frame).
 
 To repeat a check yourself: open `/test-drive`, wait for "System ready", choose Upload video with any clip showing riders, and confirm boxes and counters update. Compare against the desktop app or `ultralytics` on the same frames.
 

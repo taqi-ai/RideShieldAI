@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createEngine, type Engine, type EngineInfo, type LoadProgress } from '../inference/engine'
-import { DEFAULT_MODEL } from '../inference/models'
+import { DEFAULT_MODEL, getModel, initialModelId, rememberModelId, type ModelSpec } from '../inference/models'
 import { Tracker, type TrackedDetection } from '../inference/tracker'
 
 export type EngineState =
@@ -41,22 +41,31 @@ const EMPTY: SessionStats = {
   latencyMs: 0,
 }
 
-// The engine outlives route changes so the model is downloaded and compiled once per page load.
-let enginePromise: Promise<Engine> | null = null
+// The loaded engine outlives route changes so a model is downloaded and compiled once per page load.
+// Only one engine is kept: loading another model releases the previous one (frees GPU memory).
+const enginePromises = new Map<string, Promise<Engine>>()
 const progressListeners = new Set<(p: LoadProgress) => void>()
 let lastProgress: LoadProgress = { phase: 'runtime', loaded: 0, total: 1 }
 
-function getEngine(): Promise<Engine> {
-  if (!enginePromise) {
-    enginePromise = createEngine(DEFAULT_MODEL, (p) => {
-      lastProgress = p
-      progressListeners.forEach((l) => l(p))
+function loadEngine(spec: ModelSpec): Promise<Engine> {
+  for (const [id, pending] of enginePromises) {
+    if (id === spec.id) continue
+    enginePromises.delete(id)
+    pending.then((e) => e.dispose()).catch(() => {})
+  }
+  let p = enginePromises.get(spec.id)
+  if (!p) {
+    lastProgress = { phase: 'runtime', loaded: 0, total: 1 }
+    p = createEngine(spec, (prog) => {
+      lastProgress = prog
+      progressListeners.forEach((l) => l(prog))
     }).catch((e) => {
-      enginePromise = null
+      enginePromises.delete(spec.id)
       throw e
     })
+    enginePromises.set(spec.id, p)
   }
-  return enginePromise
+  return p
 }
 
 // Box colours match the legend in the cockpit (safety green, coral, lavender for unknown classes).
@@ -107,6 +116,8 @@ export function useDetectionSession() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  const [modelId, setModelId] = useState(initialModelId)
+  const spec = getModel(modelId)
   const [engineState, setEngineState] = useState<EngineState>({ status: 'loading', progress: lastProgress })
   const [run, setRun] = useState<RunState>('idle')
   const [source, setSource] = useState<SourceKind | null>(null)
@@ -136,12 +147,13 @@ export function useDetectionSession() {
     thresholdRef.current = threshold
   }, [threshold])
 
-  // Engine loading, with progress shared across mounts.
+  // Engine loading for the selected model, with progress shared across mounts.
   useEffect(() => {
     let alive = true
+    engineRef.current = null
     const onProgress = (p: LoadProgress) => alive && setEngineState({ status: 'loading', progress: p })
     progressListeners.add(onProgress)
-    getEngine().then(
+    loadEngine(spec).then(
       (e) => {
         if (!alive) return
         engineRef.current = e
@@ -153,7 +165,7 @@ export function useDetectionSession() {
       alive = false
       progressListeners.delete(onProgress)
     }
-  }, [])
+  }, [spec])
 
   // Is optional sample footage present? (The SPA fallback returns HTML for missing files, so check the type.)
   useEffect(() => {
@@ -308,7 +320,7 @@ export function useDetectionSession() {
               newEvents.push({
                 id: ++eventSeq.current,
                 trackId: t.id,
-                label: DEFAULT_MODEL.classes[cls],
+                label: engine.spec.classes[cls],
                 score: t.lastScore,
                 clock: clock(v.currentTime),
               })
@@ -316,7 +328,7 @@ export function useDetectionSession() {
           }
           let helmet = 0
           let none = 0
-          classOfTrack.current.forEach((cls) => (DEFAULT_MODEL.classes[cls] === 'helmet' ? helmet++ : none++))
+          classOfTrack.current.forEach((cls) => (engine.spec.classes[cls] === 'helmet' ? helmet++ : none++))
           st.helmetTracks = helmet
           st.noHelmetTracks = none
           if (newEvents.length) setEvents((prev) => [...newEvents.reverse(), ...prev].slice(0, 40))
@@ -463,9 +475,26 @@ export function useDetectionSession() {
     }
   }, [])
 
+  // Switching models stops the current source (the old model's results would no longer apply),
+  // clears the counters and loads the new engine; the effect above does the loading.
+  const selectModel = useCallback(
+    (id: string) => {
+      if (id === modelId) return
+      stop()
+      resetStats()
+      setNotice({ tone: 'info', text: `Switching to ${getModel(id).label}. Counters were reset.` })
+      rememberModelId(id)
+      setEngineState({ status: 'loading', progress: { phase: 'runtime', loaded: 0, total: 1 } })
+      setModelId(id)
+    },
+    [modelId, stop, resetStats],
+  )
+
   return {
     videoRef,
     canvasRef,
+    spec,
+    selectModel,
     engineState,
     run,
     source,
