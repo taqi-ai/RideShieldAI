@@ -1,11 +1,11 @@
 # RideShield AI
 
-AI helmet detection for road safety. The repository has two parts that share the same trained model family (classes `helmet` and `nohelmet`):
+AI helmet detection for road safety. The repository keeps both versions of the product, which share the same trained model family (classes `helmet` and `nohelmet`):
 
 | Part | Folder | What it is |
 |---|---|---|
-| Web experience | [`web/`](web/) | Public website with an in-browser test drive. The YOLO model runs on the visitor's device with ONNX Runtime Web. No backend, free to host. |
-| Desktop app | `main.py`, `src/` | PyQt6 instrument-cluster app that runs Ultralytics YOLO on a local camera and logs events to SQLite. |
+| Web experience | [`web/`](web/) | Public website with an in-browser test drive. The YOLO model runs on the visitor's device with ONNX Runtime Web. No backend, free to host. Live at https://rideshield-ai.vercel.app |
+| Desktop app (offline) | `main.py`, `src/`, `models/`, `start.bat` | PyQt6 instrument-cluster app that runs Ultralytics YOLO on a local camera and logs events to SQLite. See [Desktop app](#desktop-app-offline-version). |
 
 The name is **RideShield AI**. The helmet logo comes from `ai assets/logo full.png`. The web app has day and night themes, each with its own logo. To change the logo, replace the sheet and run `.venv\Scripts\python.exe web/scripts/build_brand_assets.py`; it rewrites `web/public/brand` (logos, favicons, social image). Identity text is in `web/src/config/brand.ts`.
 
@@ -35,13 +35,42 @@ Verified on the live Vercel site: direct load of `/test-drive`, cross-origin iso
 
 Not yet verified: live webcam capture, trailer fullscreen, Safari and Firefox, real phones, and a Cloudflare Pages deployment.
 
-## Desktop app
+## Desktop app (offline version)
+
+The original RideShield AI desktop software is kept in this repository and is separate from the website. It runs on one computer with a local camera, uses the YOLO weights in `models/` directly through Ultralytics, and needs no internet connection to run detection. You only need internet once, to install the Python packages.
+
+**Run it (Windows):**
 
 ```bash
-start.bat          # creates .venv, installs requirements.txt, runs main.py
+start.bat          # creates .venv, installs requirements.txt, then runs main.py
 ```
 
-Or manually: `python -m venv .venv`, `pip install -r requirements.txt`, `python main.py`. Pick the model in Settings. `yolo11m.pt` is the default.
+Or by hand: `python -m venv .venv`, `.venv\Scripts\activate`, `pip install -r requirements.txt`, `python main.py`.
+
+**What it does** (from the source in `src/`):
+
+- Splash screen, then a full-screen "TFT cluster" dashboard with custom-drawn dials, helmet status, engine control, ride information, system alerts and a live camera feed with detection boxes.
+- Pages for Live Monitor, Fleet Analytics, Event Stream, Rider Safety Center, Settings and an Engineering Console (CPU, memory, GPU and model status).
+- Settings for confidence threshold (0.30 to 0.90), model file (any `.pt` in `models/`), camera resolution, safety mode (Monitor Only, Smart Lock Mode, Strict Enforcement) and alert delay.
+- When no helmet is seen for the configured delay it raises an alert, saves a snapshot to `assets/captures/` and speaks a warning. Voice uses the Windows speech synthesizer through PowerShell, so spoken alerts work on Windows only.
+- Detections, events, alerts, sessions and settings are stored in a local SQLite file, `database/rideshield.db`.
+
+**Models:** `yolo11m.pt` is the default. Choose `helmet_yolo26n.pt` or `best.pt` in Settings. All three detect `helmet` and `nohelmet`.
+
+**Files:** `main.py` (entry point), `src/` (UI, detection thread, alert and audio systems, database), `assets/` (images and stylesheet), `models/` (weights), `requirements.txt` (PyQt6, opencv-python, numpy, ultralytics, psutil, py-cpuinfo).
+
+The desktop app has not been changed by the website work, and I did not run it while writing this section.
+
+### Website versus desktop
+
+| | Website (`web/`) | Desktop app |
+|---|---|---|
+| Runs on | Any modern browser | Windows computer with Python |
+| Input | Webcam or uploaded video | Local camera |
+| Inference | In the browser (WebGPU or WebAssembly) | Ultralytics on the local CPU or GPU |
+| Needs internet | To open the site | Only to install packages |
+| History | This session only | Saved to a local SQLite database |
+| Alerts | On-screen events | On-screen, snapshots and voice |
 
 ## Models
 
