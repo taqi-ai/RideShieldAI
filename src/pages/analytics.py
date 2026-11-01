@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QFrame, QGridLayout, QScrollArea)
 from PyQt6.QtCore import Qt, pyqtSlot, QTimer, QRectF, QPointF
 from PyQt6.QtGui import QPainter, QColor, QPen, QFont, QPainterPath
+from src import theme
+from src.ui_kit import make_card, page_header, tag
 
 class MultiLineChart(QWidget):
     def __init__(self, title, lines, max_val, parent=None):
@@ -13,7 +15,7 @@ class MultiLineChart(QWidget):
         self.lines = lines # list of dicts: {'name': 'FPS', 'color': QColor, 'data': []}
         self.max_val = max_val
         self.max_data_points = 60
-        self.setMinimumHeight(180)
+        self.setMinimumHeight(200)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -23,14 +25,16 @@ class MultiLineChart(QWidget):
         height = self.height()
         
         # Background
-        painter.fillRect(0, 0, width, height, QColor(10, 15, 25, 200))
-        
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(theme.DEVICE))
+        painter.drawRoundedRect(0, 0, width, height, 14, 14)
+
         # Grid
-        painter.setPen(QPen(QColor(255, 255, 255, 20), 1))
+        painter.setPen(QPen(QColor(255, 255, 255, 16), 1))
         for i in range(1, 4):
             y = int(height * i / 4)
-            painter.drawLine(0, y, width, y)
-            
+            painter.drawLine(14, y, width - 14, y)
+
         x_step = width / max(1, (self.max_data_points - 1))
         
         # Draw Lines
@@ -53,18 +57,16 @@ class MultiLineChart(QWidget):
             painter.setPen(QPen(line['color'], 2))
             painter.drawPath(path)
             
-        # Title
-        painter.setPen(QColor(255, 255, 255))
-        painter.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
-        painter.drawText(10, 20, self.title)
-        
-        # Legend
-        y_offset = 40
-        painter.setFont(QFont("Segoe UI", 10))
+        # Title and legend
+        painter.setPen(QColor(theme.TEXT))
+        painter.setFont(theme.semi_font(16))
+        painter.drawText(16, 26, self.title)
+        painter.setFont(theme.body_font(12))
+        x = 16
         for line in self.lines:
             painter.setPen(line['color'])
-            painter.drawText(10, y_offset, f"— {line['name']}")
-            y_offset += 20
+            painter.drawText(x, 46, "● " + line['name'])
+            x += 24 + painter.fontMetrics().horizontalAdvance("● " + line['name'])
 
 class AnalyticsPage(QWidget):
     def __init__(self, ai_engine=None, alert_system=None, parent=None):
@@ -104,94 +106,66 @@ class AnalyticsPage(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(40, 20, 40, 20)
-        layout.setSpacing(20)
-        
-        title_layout = QHBoxLayout()
-        title = QLabel("Fleet Analytics")
-        title.setProperty("class", "h1")
-        
-        session_lbl = QLabel("LIVE SESSION DATA")
-        session_lbl.setProperty("class", "h3")
-        session_lbl.setStyleSheet("color: #39FF14;")
-        
-        title_layout.addWidget(title)
-        title_layout.addStretch()
-        title_layout.addWidget(session_lbl)
-        layout.addLayout(title_layout)
-        
-        # Scroll Area for massive dashboard
+        layout.setContentsMargins(28, 18, 28, 18)
+        layout.setSpacing(14)
+
+        layout.addWidget(page_header("Analytics", "Helmet compliance and engine performance for this session.", tag("LIVE SESSION DATA")))
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("background: transparent; border: none;")
         scroll_content = QWidget()
+        scroll_content.setStyleSheet("background: transparent;")
         scroll_lay = QVBoxLayout(scroll_content)
-        
-        # KPI Grid
+        scroll_lay.setContentsMargins(0, 0, 8, 0)
+        scroll_lay.setSpacing(14)
+
         self.grid_layout = QGridLayout()
-        self.grid_layout.setSpacing(15)
-        
-        self.kpi_compliance = self.create_kpi_card("Helmet Compliance", "0%")
-        self.kpi_confidence = self.create_kpi_card("Average Confidence", "0%")
-        self.kpi_detect_count = self.create_kpi_card("Total Detections", "0")
-        self.kpi_alerts = self.create_kpi_card("Alerts Today", "0")
-        self.kpi_alerts[1].setStyleSheet("color: #FF3333; font-size: 32px; font-weight: bold;")
-        self.kpi_fps = self.create_kpi_card("Average FPS", "0")
-        
-        self.kpi_safety_score = self.create_kpi_card("Safety Score", "100")
-        self.kpi_safety_score[1].setStyleSheet("color: #39FF14; font-size: 64px; font-weight: bold;")
-        
-        self.grid_layout.addWidget(self.kpi_compliance[0], 0, 0)
-        self.grid_layout.addWidget(self.kpi_confidence[0], 0, 1)
-        self.grid_layout.addWidget(self.kpi_safety_score[0], 0, 2, 2, 1)
+        self.grid_layout.setSpacing(14)
+
+        self.kpi_compliance = self.create_kpi_card("HELMET COMPLIANCE", "0%")
+        self.kpi_confidence = self.create_kpi_card("AVERAGE CONFIDENCE", "0%")
+        self.kpi_detect_count = self.create_kpi_card("FRAMES ANALYSED", "0")
+        self.kpi_alerts = self.create_kpi_card("ALERTS", "0", theme.BAD)
+        self.kpi_fps = self.create_kpi_card("AVERAGE FPS", "0")
+        self.kpi_safety_score = self.create_kpi_card("SAFETY SCORE", "100", theme.OK, 96)
+
+        self.grid_layout.addWidget(self.kpi_safety_score[0], 0, 0, 2, 1)
+        self.grid_layout.addWidget(self.kpi_compliance[0], 0, 1)
+        self.grid_layout.addWidget(self.kpi_confidence[0], 0, 2)
         self.grid_layout.addWidget(self.kpi_detect_count[0], 0, 3)
-        self.grid_layout.addWidget(self.kpi_alerts[0], 1, 0)
-        self.grid_layout.addWidget(self.kpi_fps[0], 1, 1)
-        
+        self.grid_layout.addWidget(self.kpi_alerts[0], 1, 1)
+        self.grid_layout.addWidget(self.kpi_fps[0], 1, 2)
+        for c in range(4):
+            self.grid_layout.setColumnStretch(c, 1)
         scroll_lay.addLayout(self.grid_layout)
-        
-        # Charts Grid
+
         charts_grid = QGridLayout()
-        charts_grid.setSpacing(20)
-        
-        self.chart_safety = MultiLineChart("Safety & Compliance", [
-            {'name': 'Compliance %', 'color': QColor(57, 255, 20), 'data': self.history_comp},
-            {'name': 'Confidence %', 'color': QColor(0, 229, 255), 'data': self.history_conf}
+        charts_grid.setSpacing(14)
+        self.chart_safety = MultiLineChart("Safety and compliance", [
+            {'name': 'Compliance %', 'color': QColor(theme.OK), 'data': self.history_comp},
+            {'name': 'Confidence %', 'color': QColor(theme.ACCENT), 'data': self.history_conf}
         ], 100)
-        
-        self.chart_perf = MultiLineChart("Engine Performance", [
-            {'name': 'FPS', 'color': QColor(255, 165, 0), 'data': self.history_fps}
+        self.chart_perf = MultiLineChart("Engine performance", [
+            {'name': 'FPS', 'color': QColor(theme.WARN), 'data': self.history_fps}
         ], 60)
-        
-        self.chart_hw = MultiLineChart("Hardware Utilization", [
-            {'name': 'GPU %', 'color': QColor(255, 51, 51), 'data': self.history_gpu},
-            {'name': 'VRAM %', 'color': QColor(160, 32, 240), 'data': self.history_vram}
+        self.chart_hw = MultiLineChart("Hardware utilisation", [
+            {'name': 'GPU %', 'color': QColor(theme.BAD), 'data': self.history_gpu},
+            {'name': 'VRAM %', 'color': QColor(theme.VIOLET), 'data': self.history_vram}
         ], 100)
-        
         charts_grid.addWidget(self.chart_safety, 0, 0)
         charts_grid.addWidget(self.chart_perf, 0, 1)
         charts_grid.addWidget(self.chart_hw, 1, 0, 1, 2)
-        
         scroll_lay.addLayout(charts_grid)
+        scroll_lay.addStretch()
         scroll.setWidget(scroll_content)
         layout.addWidget(scroll)
 
-    def create_kpi_card(self, title, initial_value):
-        card = QFrame()
-        card.setProperty("class", "glass-card")
-        lay = QVBoxLayout(card)
-        lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        lbl_title = QLabel(title)
-        lbl_title.setProperty("class", "info-text")
-        lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
+    def create_kpi_card(self, title, initial_value, color=None, px=52):
+        card, lay = make_card(title)
         lbl_val = QLabel(initial_value)
-        lbl_val.setProperty("class", "value-medium")
-        lbl_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        lay.addWidget(lbl_title)
+        lbl_val.setStyleSheet(theme.css_display(px, color or theme.TEXT))
         lay.addWidget(lbl_val)
+        lay.addStretch()
         return card, lbl_val
 
     @pyqtSlot(dict)
@@ -235,11 +209,11 @@ class AnalyticsPage(QWidget):
         self.kpi_safety_score[1].setText(f"{score:.0f}")
         
         if score > 80:
-            self.kpi_safety_score[1].setStyleSheet("color: #39FF14; font-size: 64px; font-weight: bold;")
+            self.kpi_safety_score[1].setStyleSheet(theme.css_display(96, theme.OK))
         elif score > 50:
-            self.kpi_safety_score[1].setStyleSheet("color: #FFA500; font-size: 64px; font-weight: bold;")
+            self.kpi_safety_score[1].setStyleSheet(theme.css_display(96, theme.WARN))
         else:
-            self.kpi_safety_score[1].setStyleSheet("color: #FF3333; font-size: 64px; font-weight: bold;")
+            self.kpi_safety_score[1].setStyleSheet(theme.css_display(96, theme.BAD))
 
         # Update History arrays
         self.history_comp.pop(0)

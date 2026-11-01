@@ -45,7 +45,7 @@ class SafetyCenterPage(QWidget):
         
         gc_lay.addWidget(self.lbl("OVERALL RIDER GRADE"))
         self.grade_val = QLabel("A+")
-        self.grade_val.setStyleSheet("color: #39FF14; font-size: 160px; font-weight: bold; font-family: 'Segoe UI';")
+        self.grade_val.setStyleSheet("color: #3DDC97; font-size: 160px; font-weight: bold; font-family: 'Segoe UI';")
         self.grade_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         gc_lay.addWidget(self.grade_val)
         
@@ -64,9 +64,9 @@ class SafetyCenterPage(QWidget):
         self.kpi_health = self.create_kpi("System Health", "OPTIMAL")
         self.kpi_risk = self.create_kpi("Risk Level", "LOW")
         
-        self.kpi_score[1].setStyleSheet("color: #00E5FF; font-size: 48px; font-weight: bold;")
-        self.kpi_alerts[1].setStyleSheet("color: #FF3333; font-size: 48px; font-weight: bold;")
-        self.kpi_health[1].setStyleSheet("color: #39FF14; font-size: 48px; font-weight: bold;")
+        self.kpi_score[1].setStyleSheet("color: #B79CFF; font-size: 48px; font-weight: bold;")
+        self.kpi_alerts[1].setStyleSheet("color: #FF6674; font-size: 48px; font-weight: bold;")
+        self.kpi_health[1].setStyleSheet("color: #3DDC97; font-size: 48px; font-weight: bold;")
         
         sc_lay.addWidget(self.kpi_score[0], 0, 0)
         sc_lay.addWidget(self.kpi_comp[0], 0, 1)
@@ -82,7 +82,7 @@ class SafetyCenterPage(QWidget):
 
     def create_kpi(self, title, val):
         card = QFrame()
-        card.setStyleSheet("background-color: rgba(0,0,0,0.3); border: 1px solid rgba(0,229,255,0.2); border-radius: 12px;")
+        card.setStyleSheet("background-color: rgba(0,0,0,0.3); border: 1px solid rgba(183,156,255,0.2); border-radius: 12px;")
         lay = QVBoxLayout(card)
         lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         l1 = self.lbl(title)
@@ -126,11 +126,11 @@ class SafetyCenterPage(QWidget):
         self.kpi_alerts[1].setText(f"{self.total_alerts}")
         
         grade = "A+"
-        color = "#39FF14"
+        color = "#3DDC97"
         risk = "LOW"
         if score < 50:
             grade = "D"
-            color = "#FF3333"
+            color = "#FF6674"
             risk = "CRITICAL"
         elif score < 70:
             grade = "C"
@@ -138,11 +138,11 @@ class SafetyCenterPage(QWidget):
             risk = "MODERATE"
         elif score < 85:
             grade = "B"
-            color = "#FFA500"
+            color = "#F5B84B"
             risk = "ELEVATED"
         elif score < 95:
             grade = "A"
-            color = "#00E5FF"
+            color = "#B79CFF"
             
         self.grade_val.setText(grade)
         self.grade_val.setStyleSheet(f"color: {color}; font-size: 160px; font-weight: bold; font-family: 'Segoe UI';")

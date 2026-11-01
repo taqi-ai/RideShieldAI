@@ -5,6 +5,8 @@ import cpuinfo
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QFormLayout, QFrame, QProgressBar, QGridLayout, QScrollArea)
 from PyQt6.QtCore import Qt, QTimer, pyqtSlot
+from src import theme
+from src.ui_kit import MetricTile, make_card, page_header, tag, kv_row, value_label
 
 class SystemDiagnosticsPage(QWidget):
     def __init__(self, ai_engine, parent=None):
@@ -28,107 +30,89 @@ class SystemDiagnosticsPage(QWidget):
 
     def init_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(40, 20, 40, 20)
-        main_layout.setSpacing(20)
-        
-        title = QLabel("Engineering Console")
-        title.setProperty("class", "h1")
-        main_layout.addWidget(title)
-        
+        main_layout.setContentsMargins(28, 18, 28, 18)
+        main_layout.setSpacing(14)
+        main_layout.addWidget(page_header("Diagnostics", "Hardware and model health, refreshed every second.", tag("LIVE")))
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("background: transparent; border: none;")
-        scroll_content = QWidget()
-        layout = QGridLayout(scroll_content)
-        layout.setSpacing(20)
-        
-        # --- CPU ---
-        cpu_card = QFrame()
-        cpu_card.setProperty("class", "glass-card")
-        cpu_lay = QFormLayout(cpu_card)
-        cpu_title = QLabel("CPU Diagnostics")
-        cpu_title.setProperty("class", "h2")
-        cpu_lay.addRow(cpu_title)
-        
-        cpu_lay.addRow(self.lbl("Name:"), self.val(self.cpu_info.get('brand_raw', platform.processor())))
-        cpu_lay.addRow(self.lbl("Cores/Threads:"), self.val(f"{psutil.cpu_count(logical=False)} / {psutil.cpu_count(logical=True)}"))
-        self.cpu_usage_lbl = self.val("0%")
-        cpu_lay.addRow(self.lbl("Usage:"), self.cpu_usage_lbl)
-        
-        # --- RAM ---
-        ram_card = QFrame()
-        ram_card.setProperty("class", "glass-card")
-        ram_lay = QFormLayout(ram_card)
-        ram_title = QLabel("Memory Diagnostics")
-        ram_title.setProperty("class", "h2")
-        ram_lay.addRow(ram_title)
-        
+        content = QWidget()
+        content.setStyleSheet("background: transparent;")
+        outer = QVBoxLayout(content)
+        outer.setContentsMargins(0, 0, 8, 0)
+        outer.setSpacing(14)
+
+        tiles = QHBoxLayout()
+        tiles.setSpacing(14)
+        self.t_cpu = MetricTile("CPU LOAD", "%", 40)
+        self.t_ram = MetricTile("MEMORY", "%", 40)
+        self.t_gpu = MetricTile("GPU LOAD", "%", 40)
+        self.t_fps = MetricTile("AI FPS", "", 40)
+        for t in (self.t_cpu, self.t_ram, self.t_gpu, self.t_fps):
+            tiles.addWidget(t)
+        outer.addLayout(tiles)
+
+        layout = QGridLayout()
+        layout.setSpacing(14)
+
+        cpu_card, cl = make_card("CPU")
+        cl.addLayout(kv_row("Name", value_label(self.cpu_info.get('brand_raw', platform.processor()))))
+        cl.addLayout(kv_row("Cores / threads", value_label(f"{psutil.cpu_count(logical=False)} / {psutil.cpu_count(logical=True)}")))
+        self.cpu_usage_lbl = value_label("0%")
+        cl.addLayout(kv_row("Usage", self.cpu_usage_lbl))
+        cl.addStretch()
+
+        ram_card, rl = make_card("MEMORY")
         mem = psutil.virtual_memory()
-        ram_lay.addRow(self.lbl("Total:"), self.val(f"{mem.total / (1024**3):.1f} GB"))
-        self.ram_used_lbl = self.val("0 GB (0%)")
-        ram_lay.addRow(self.lbl("Used:"), self.ram_used_lbl)
-        self.ram_avail_lbl = self.val("0 GB")
-        ram_lay.addRow(self.lbl("Available:"), self.ram_avail_lbl)
-        
-        # --- GPU ---
-        gpu_card = QFrame()
-        gpu_card.setProperty("class", "glass-card")
-        gpu_lay = QFormLayout(gpu_card)
-        gpu_title = QLabel("GPU Diagnostics")
-        gpu_title.setProperty("class", "h2")
-        gpu_lay.addRow(gpu_title)
-        
-        self.gpu_name = self.val("N/A")
-        self.gpu_usage = self.val("N/A")
-        self.gpu_temp = self.val("N/A")
-        self.gpu_power = self.val("N/A")
-        self.gpu_vram = self.val("N/A")
-        
-        gpu_lay.addRow(self.lbl("Name:"), self.gpu_name)
-        gpu_lay.addRow(self.lbl("Usage:"), self.gpu_usage)
-        gpu_lay.addRow(self.lbl("Temperature:"), self.gpu_temp)
-        gpu_lay.addRow(self.lbl("Power Draw:"), self.gpu_power)
-        gpu_lay.addRow(self.lbl("VRAM Used:"), self.gpu_vram)
-        
-        # --- AI MODEL ---
-        ai_card = QFrame()
-        ai_card.setProperty("class", "glass-card")
-        ai_lay = QFormLayout(ai_card)
-        ai_title = QLabel("AI Model Status")
-        ai_title.setProperty("class", "h2")
-        ai_lay.addRow(ai_title)
-        
+        rl.addLayout(kv_row("Total", value_label(f"{mem.total / (1024**3):.1f} GB")))
+        self.ram_used_lbl = value_label("0 GB (0%)")
+        rl.addLayout(kv_row("Used", self.ram_used_lbl))
+        self.ram_avail_lbl = value_label("0 GB")
+        rl.addLayout(kv_row("Available", self.ram_avail_lbl))
+        rl.addStretch()
+
+        gpu_card, gl = make_card("GPU")
+        self.gpu_name = value_label("N/A")
+        self.gpu_usage = value_label("N/A")
+        self.gpu_temp = value_label("N/A")
+        self.gpu_power = value_label("N/A")
+        self.gpu_vram = value_label("N/A")
+        for k, w in (("Name", self.gpu_name), ("Usage", self.gpu_usage), ("Temperature", self.gpu_temp),
+                     ("Power draw", self.gpu_power), ("VRAM used", self.gpu_vram)):
+            gl.addLayout(kv_row(k, w))
+        gl.addStretch()
+
+        ai_card, al = make_card("AI MODEL")
         model_name = os.path.basename(self.ai_engine.model_path) if self.ai_engine else "N/A"
-        ai_lay.addRow(self.lbl("Model:"), self.val(model_name))
-        ai_lay.addWidget(ai_title)
-        
-        self.ai_status_lbl = QLabel("Model Status: Loaded")
-        self.ai_params_lbl = QLabel("Parameters: ~20M")
-        self.ai_fps_lbl = QLabel("FPS: --")
-        self.ai_inf_lbl = QLabel("Inference Time: -- ms")
-        self.ai_det_lbl = QLabel("Total Detections: 0")
-        
-        for lbl in [self.ai_status_lbl, self.ai_params_lbl, self.ai_fps_lbl, self.ai_inf_lbl, self.ai_det_lbl]:
-            lbl.setStyleSheet("color: #FFFFFF; font-size: 16px;")
-            ai_lay.addWidget(lbl)
-        
+        al.addLayout(kv_row("Model", value_label(model_name, theme.ACCENT)))
+        self.ai_status_lbl = value_label("Loaded", theme.OK)
+        self.ai_params_lbl = value_label("--")
+        self.ai_fps_lbl = value_label("--")
+        self.ai_inf_lbl = value_label("-- ms")
+        self.ai_det_lbl = value_label("0")
+        for k, w in (("Status", self.ai_status_lbl), ("Parameters", self.ai_params_lbl), ("FPS", self.ai_fps_lbl),
+                     ("Inference time", self.ai_inf_lbl), ("Total detections", self.ai_det_lbl)):
+            al.addLayout(kv_row(k, w))
+        al.addStretch()
+
         layout.addWidget(cpu_card, 0, 0)
         layout.addWidget(ram_card, 0, 1)
         layout.addWidget(gpu_card, 1, 0)
         layout.addWidget(ai_card, 1, 1)
-        
-        scroll.setWidget(scroll_content)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 1)
+        outer.addLayout(layout)
+        outer.addStretch()
+        scroll.setWidget(content)
         main_layout.addWidget(scroll)
 
     def lbl(self, text):
         l = QLabel(text)
-        l.setProperty("class", "info-text")
+        l.setProperty("class", "muted")
         return l
-        
+
     def val(self, text):
-        l = QLabel(text)
-        l.setStyleSheet("color: #FFFFFF; font-weight: bold; font-size: 16px;")
-        return l
+        return value_label(text)
 
     @pyqtSlot(dict)
     def update_ai_stats(self, stats):
@@ -138,20 +122,24 @@ class SystemDiagnosticsPage(QWidget):
         inf = stats.get("inference_time", 0)
         total = stats.get("total_detections", 0)
         
-        self.ai_status_lbl.setText(f"Model Status: Loaded ({model})")
-        self.ai_params_lbl.setText(f"Parameters: {params}")
-        self.ai_fps_lbl.setText(f"FPS: {fps:.1f}")
-        self.ai_inf_lbl.setText(f"Inference Time: {inf:.1f} ms")
-        self.ai_det_lbl.setText(f"Total Detections: {total}")
+        self.ai_status_lbl.setText(f"Loaded ({model})")
+        self.ai_params_lbl.setText(f"{params}")
+        self.ai_fps_lbl.setText(f"{fps:.1f}")
+        self.ai_inf_lbl.setText(f"{inf:.1f} ms")
+        self.ai_det_lbl.setText(f"{total}")
+        self.t_fps.set(f"{fps:.1f}", fps / 60, theme.OK)
 
     def update_diagnostics(self):
         # CPU
-        self.cpu_usage_lbl.setText(f"{psutil.cpu_percent()}%")
+        cpu = psutil.cpu_percent()
+        self.cpu_usage_lbl.setText(f"{cpu}%")
+        self.t_cpu.set(f"{cpu:.0f}", cpu / 100, theme.ACCENT if cpu < 80 else theme.WARN)
         
         # RAM
         mem = psutil.virtual_memory()
         self.ram_used_lbl.setText(f"{mem.used / (1024**3):.1f} GB ({mem.percent}%)")
         self.ram_avail_lbl.setText(f"{mem.available / (1024**3):.1f} GB")
+        self.t_ram.set(f"{mem.percent:.0f}", mem.percent / 100, theme.ACCENT if mem.percent < 85 else theme.WARN)
         
         # GPU
         if self.has_gpu:
@@ -171,5 +159,6 @@ class SystemDiagnosticsPage(QWidget):
                 self.gpu_temp.setText(f"{temp} °C")
                 self.gpu_power.setText(f"{power:.1f} W")
                 self.gpu_vram.setText(f"{mem_info.used / (1024**2):.0f} MB / {mem_info.total / (1024**2):.0f} MB")
+                self.t_gpu.set(f"{util.gpu}", util.gpu / 100, theme.ACCENT)
             except Exception as e:
                 self.gpu_name.setText("Error reading NVML")

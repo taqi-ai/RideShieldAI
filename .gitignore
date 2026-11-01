@@ -7,3 +7,7 @@ assets/captures/
 *.db
 
 .taste-skill/
+
+# Windows build output
+/dist/
+/build/

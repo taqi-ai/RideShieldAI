@@ -409,7 +409,7 @@ html.theme-fade *::after {
 .nav-menu .btn {
   margin-top: 0.5rem;
 }
-@media (min-width: 900px) {
+@media (min-width: 1100px) {
   .nav-links {
     display: flex;
   }
@@ -2139,4 +2139,54 @@ h3 {
   .band .slab {
     animation: none;
   }
+}
+
+/* Download page */
+.dl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+.hash {
+  font-family: var(--font);
+  font-size: 0.9em;
+  padding: 0.1em 0.45em;
+  border-radius: 0.35rem;
+  background: color-mix(in oklch, var(--text) 9%, transparent);
+  color: var(--text);
+  word-break: break-all;
+}
+.how-run {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: run;
+  display: grid;
+  gap: 1rem;
+}
+.how-run li {
+  counter-increment: run;
+  position: relative;
+  padding: 1rem 1.2rem 1rem 3.4rem;
+  background: var(--surface-2);
+  border-radius: var(--r);
+  color: var(--muted);
+}
+.how-run li::before {
+  content: counter(run);
+  position: absolute;
+  left: 1.1rem;
+  top: 0.55rem;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 1.9rem;
+  color: var(--accent);
+}
+.how-run b {
+  color: var(--text);
+  font-weight: 600;
+}
+.section.alt .how-run li {
+  background: var(--surface);
 }

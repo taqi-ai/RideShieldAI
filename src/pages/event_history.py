@@ -2,7 +2,8 @@ import os
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QScrollArea, QHBoxLayout
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPixmap
-from src import database
+from src import database, theme
+from src.ui_kit import make_card, page_header, tag
 
 class EventHistoryPage(QWidget):
     def __init__(self, parent=None):
@@ -16,22 +17,19 @@ class EventHistoryPage(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(40, 20, 40, 20)
-        layout.setSpacing(30)
-        
-        title = QLabel("Event Stream")
-        title.setProperty("class", "h1")
-        layout.addWidget(title)
-        
+        layout.setContentsMargins(28, 18, 28, 18)
+        layout.setSpacing(14)
+        self.count_tag = tag("0 EVENTS")
+        layout.addWidget(page_header("History", "Alerts and engine-lock events saved on this computer.", self.count_tag))
+
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("background-color: transparent; border: none;")
-        
         self.scroll_content = QWidget()
+        self.scroll_content.setStyleSheet("background: transparent;")
         self.scroll_layout = QVBoxLayout(self.scroll_content)
         self.scroll_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.scroll_layout.setSpacing(15)
-        
+        self.scroll_layout.setContentsMargins(0, 0, 8, 0)
+        self.scroll_layout.setSpacing(10)
         self.scroll_area.setWidget(self.scroll_content)
         layout.addWidget(self.scroll_area)
 
@@ -45,10 +43,15 @@ class EventHistoryPage(QWidget):
                 item.widget().deleteLater()
                 
         if not events:
-            empty_lbl = QLabel("No events recorded in this session.")
-            empty_lbl.setProperty("class", "info-text")
-            self.scroll_layout.addWidget(empty_lbl)
+            self.count_tag.setText("0 EVENTS")
+            card, lay = make_card("NOTHING RECORDED YET")
+            msg = QLabel("When a rider is seen without a helmet, the alert and a snapshot appear here.")
+            msg.setProperty("class", "muted")
+            msg.setWordWrap(True)
+            lay.addWidget(msg)
+            self.scroll_layout.addWidget(card)
             return
+        self.count_tag.setText(f"{len(events)} EVENTS")
             
         for event in events:
             try:
@@ -59,59 +62,46 @@ class EventHistoryPage(QWidget):
                 pass
             
     def create_event_card(self, event):
-        card = QFrame()
-        card.setProperty("class", "glass-card")
-        card.setFixedHeight(120)
-        
-        lay = QHBoxLayout(card)
-        lay.setContentsMargins(20, 10, 20, 10)
-        lay.setSpacing(20)
-        
-        # Thumbnail
+        text = event.get('event_type', 'Unknown event')
+        bad = "Alert" in text or "Lock" in text
+        card, lay = make_card(None, "bad" if bad else None)
+        card.setFixedHeight(112)
+        lay.setContentsMargins(14, 10, 18, 10)
+        row = QHBoxLayout()
+        row.setSpacing(16)
+        lay.addLayout(row)
+
         thumb = QLabel()
         thumb.setFixedSize(160, 90)
-        thumb.setStyleSheet("background-color: #000000; border-radius: 6px;")
+        thumb.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        thumb.setStyleSheet(f"background-color: {theme.DEVICE}; border-radius: 8px; color: {theme.FAINT};")
         path = event.get('screenshot_path')
         if path and os.path.exists(path):
             pix = QPixmap(path).scaled(160, 90, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
             thumb.setPixmap(pix)
         else:
-            thumb.setText("NO MEDIA")
-            thumb.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            thumb.setProperty("class", "info-text")
-            
-        lay.addWidget(thumb)
-        
-        # Details
-        info_lay = QVBoxLayout()
-        
-        header_lay = QHBoxLayout()
-        type_lbl = QLabel(event.get('event_type', 'Unknown Event').upper())
-        type_lbl.setProperty("class", "h3")
-        
-        if "Alert" in type_lbl.text() or "Lock" in type_lbl.text():
-            type_lbl.setStyleSheet("color: #FF3333; font-weight: bold;")
-        else:
-            type_lbl.setStyleSheet("color: #00E5FF; font-weight: bold;")
-            
+            thumb.setText("no snapshot")
+        row.addWidget(thumb)
+
+        info = QVBoxLayout()
+        info.setSpacing(3)
+        head = QHBoxLayout()
+        type_lbl = QLabel(text.upper())
+        type_lbl.setStyleSheet(theme.css_semi(20, theme.BAD if bad else theme.ACCENT))
         time_lbl = QLabel(str(event.get('timestamp', '')))
-        time_lbl.setProperty("class", "info-text")
-        
-        header_lay.addWidget(type_lbl)
-        header_lay.addStretch()
-        header_lay.addWidget(time_lbl)
-        
-        info_lay.addLayout(header_lay)
-        
-        details_lbl = QLabel(event.get('details', ''))
-        details_lbl.setStyleSheet("color: #FFFFFF; font-size: 16px;")
-        info_lay.addWidget(details_lbl)
-        
+        time_lbl.setProperty("class", "faint")
+        head.addWidget(type_lbl)
+        head.addStretch()
+        head.addWidget(time_lbl)
+        info.addLayout(head)
+        details = QLabel(event.get('details', ''))
+        details.setWordWrap(True)
+        info.addWidget(details)
         conf = event.get('confidence')
         if conf is not None:
-            conf_lbl = QLabel(f"Confidence: {conf:.1%}")
-            conf_lbl.setProperty("class", "info-text")
-            info_lay.addWidget(conf_lbl)
-            
-        lay.addLayout(info_lay)
+            c = QLabel(f"Confidence {conf:.0%}")
+            c.setProperty("class", "muted")
+            info.addWidget(c)
+        info.addStretch()
+        row.addLayout(info, stretch=1)
         return card

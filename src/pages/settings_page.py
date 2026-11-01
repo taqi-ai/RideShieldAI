@@ -2,7 +2,8 @@ import os
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QFormLayout, QSpinBox, QComboBox, QPushButton, QFrame, QMessageBox, QStackedWidget, QListWidget)
 from PyQt6.QtCore import Qt
-from src import database
+from src import database, theme
+from src.ui_kit import make_card, page_header
 
 class SettingsPage(QWidget):
     def __init__(self, alert_system, parent=None):
@@ -19,24 +20,24 @@ class SettingsPage(QWidget):
         # --- Left Sidebar ---
         sidebar = QFrame()
         sidebar.setFixedWidth(250)
-        sidebar.setStyleSheet("background-color: #0A0A0E; border-right: 1px solid rgba(255, 255, 255, 0.1);")
+        sidebar.setStyleSheet(f"background-color: {theme.DEVICE}; border-right: 1px solid {theme.LINE};")
         side_lay = QVBoxLayout(sidebar)
-        side_lay.setContentsMargins(20, 40, 20, 20)
+        side_lay.setContentsMargins(16, 28, 16, 16)
         side_lay.setSpacing(15)
         
-        title = QLabel("SETTINGS")
-        title.setProperty("class", "h2")
+        title = QLabel("Settings")
+        title.setStyleSheet(theme.css_display(34, theme.TEXT))
         side_lay.addWidget(title)
-        side_lay.addSpacing(20)
+        side_lay.addSpacing(8)
         
         self.list_widget = QListWidget()
-        self.list_widget.setStyleSheet("""
-            QListWidget { background: transparent; border: none; outline: none; }
-            QListWidget::item { color: #888888; font-size: 16px; font-weight: bold; padding: 15px; border-radius: 8px; }
-            QListWidget::item:selected { background-color: rgba(0, 229, 255, 0.1); color: #00E5FF; border-left: 4px solid #00E5FF; }
-            QListWidget::item:hover { color: #FFFFFF; }
+        self.list_widget.setStyleSheet(f"""
+            QListWidget {{ background: transparent; border: none; outline: none; }}
+            QListWidget::item {{ color: {theme.MUTED}; font-size: 15px; font-weight: 600; padding: 12px 14px; border-radius: 10px; margin-bottom: 2px; }}
+            QListWidget::item:selected {{ background-color: rgba(183, 156, 255, 0.14); color: {theme.ACCENT}; }}
+            QListWidget::item:hover {{ color: {theme.TEXT}; }}
         """)
-        
+
         categories = ["Detection", "Camera", "Safety", "Performance", "Interface", "System"]
         self.list_widget.addItems(categories)
         self.list_widget.setCurrentRow(0)
@@ -47,19 +48,21 @@ class SettingsPage(QWidget):
         # --- Right Content Area ---
         content_area = QWidget()
         content_lay = QVBoxLayout(content_area)
-        content_lay.setContentsMargins(50, 50, 50, 50)
+        content_lay.setContentsMargins(28, 18, 28, 18)
+        content_lay.setSpacing(14)
+        content_lay.addWidget(page_header("Preferences", "Detection, camera, safety and interface options. Saved on this computer."))
         
         self.stack = QStackedWidget()
         
         # 1. Detection
         det_page = QWidget()
-        det_lay = QFormLayout(det_page)
-        det_lay.setSpacing(20)
+        det_lay = self.form_card(det_page, 'det')
         self.conf_combo = QComboBox()
         self.conf_combo.addItems(["Low (0.30)", "Medium (0.50)", "High (0.75)", "Strict (0.90)"])
         self.model_combo = QComboBox()
         
-        models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models"))
+        from src.paths import resource
+        models_dir = os.path.abspath(resource("models"))
         if os.path.exists(models_dir):
             models = [f for f in os.listdir(models_dir) if f.endswith(".pt")]
         else:
@@ -72,8 +75,7 @@ class SettingsPage(QWidget):
         
         # 2. Camera
         cam_page = QWidget()
-        cam_lay = QFormLayout(cam_page)
-        cam_lay.setSpacing(20)
+        cam_lay = self.form_card(cam_page, 'cam')
         self.cam_id_spin = QSpinBox()
         self.cam_id_spin.setRange(0, 10)
         self.res_combo = QComboBox()
@@ -84,8 +86,7 @@ class SettingsPage(QWidget):
         
         # 3. Safety
         saf_page = QWidget()
-        saf_lay = QFormLayout(saf_page)
-        saf_lay.setSpacing(20)
+        saf_lay = self.form_card(saf_page, 'saf')
         self.safety_mode_combo = QComboBox()
         self.safety_mode_combo.addItems(["Monitor Only", "Smart Lock Mode", "Strict Enforcement"])
         self.alert_delay_spin = QSpinBox()
@@ -97,8 +98,7 @@ class SettingsPage(QWidget):
         
         # 4. Performance
         perf_page = QWidget()
-        perf_lay = QFormLayout(perf_page)
-        perf_lay.setSpacing(20)
+        perf_lay = self.form_card(perf_page, 'perf')
         self.gpu_accel_combo = QComboBox()
         self.gpu_accel_combo.addItems(["Enabled (TensorRT)", "Enabled (CUDA)", "Disabled (CPU Only)"])
         self.max_fps_spin = QSpinBox()
@@ -110,8 +110,7 @@ class SettingsPage(QWidget):
         
         # 5. Interface
         int_page = QWidget()
-        int_lay = QFormLayout(int_page)
-        int_lay.setSpacing(20)
+        int_lay = self.form_card(int_page, 'int')
         self.theme_combo = QComboBox()
         self.theme_combo.addItems(["Dark Futuristic", "High Contrast", "Day Mode"])
         self.anim_speed_combo = QComboBox()
@@ -122,8 +121,7 @@ class SettingsPage(QWidget):
         
         # 6. System
         sys_page = QWidget()
-        sys_lay = QFormLayout(sys_page)
-        sys_lay.setSpacing(20)
+        sys_lay = self.form_card(sys_page, 'sys')
         self.telemetry_combo = QComboBox()
         self.telemetry_combo.addItems(["Upload Anonymized", "Local Only"])
         self.auto_update_combo = QComboBox()
@@ -135,12 +133,6 @@ class SettingsPage(QWidget):
         for i in range(self.stack.count()):
             w = self.stack.widget(i)
             if isinstance(w, QLabel): w.setProperty("class", "h2")
-            
-        # Apply inputs style
-        input_style = "background-color: #1A1A24; color: #FFFFFF; border: 1px solid rgba(255,255,255,0.2); padding: 12px; border-radius: 6px; font-size: 16px;"
-        for w in [self.conf_combo, self.model_combo, self.cam_id_spin, self.res_combo, self.safety_mode_combo, self.alert_delay_spin,
-                  self.gpu_accel_combo, self.max_fps_spin, self.theme_combo, self.anim_speed_combo, self.telemetry_combo, self.auto_update_combo]:
-            w.setStyleSheet(input_style)
             
         content_lay.addWidget(self.stack, stretch=1)
         
@@ -157,9 +149,24 @@ class SettingsPage(QWidget):
         
         self.list_widget.currentRowChanged.connect(self.stack.setCurrentIndex)
 
+    CARD_TITLES = {"det": "DETECTION", "cam": "CAMERA", "saf": "SAFETY", "perf": "PERFORMANCE", "int": "INTERFACE", "sys": "SYSTEM"}
+
+    def form_card(self, page, key):
+        """Put a form inside a titled card on the given page widget and return the form layout."""
+        outer = QVBoxLayout(page)
+        outer.setContentsMargins(0, 0, 0, 0)
+        card, lay = make_card(self.CARD_TITLES[key])
+        form = QFormLayout()
+        form.setSpacing(16)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
+        lay.addLayout(form)
+        outer.addWidget(card)
+        outer.addStretch()
+        return form
+
     def create_lbl(self, text):
         lbl = QLabel(text)
-        lbl.setProperty("class", "h3")
+        lbl.setProperty("class", "muted")
         return lbl
 
     def load_settings(self):

@@ -1,20 +1,25 @@
 import os
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout)
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QGridLayout
 from PyQt6.QtCore import Qt, pyqtSlot, QTimer
-from PyQt6.QtGui import QImage, QPixmap, QColor, QPainter, QFont
+from PyQt6.QtGui import QImage, QPixmap
+
+from src import theme
+from src.ui_kit import MetricTile, make_card, page_header, repolish, tag
+
 
 class LiveMonitorPage(QWidget):
     def __init__(self, ai_engine, alert_system, parent=None):
         super().__init__(parent)
         self.ai_engine = ai_engine
         self.alert_system = alert_system
+        self.frames = 0
+        self.helmet_frames = 0
         self.init_ui()
-        
-        # Connect signals
+
         if self.ai_engine:
             self.ai_engine.image_update.connect(self.update_image)
             self.ai_engine.stats_update.connect(self.update_stats)
-            
+
         self.blink_state = True
         self.blink_timer = QTimer(self)
         self.blink_timer.timeout.connect(self.toggle_blink)
@@ -22,120 +27,109 @@ class LiveMonitorPage(QWidget):
 
     def toggle_blink(self):
         self.blink_state = not self.blink_state
-        if self.blink_state:
-            self.live_indicator.setStyleSheet("color: #FF3333; font-size: 24px; font-weight: bold; background-color: transparent;")
-        else:
-            self.live_indicator.setStyleSheet("color: rgba(255,51,51,0.5); font-size: 24px; font-weight: bold; background-color: transparent;")
-        self.live_indicator.adjustSize()
+        color = theme.BAD if self.blink_state else "rgba(255,102,116,0.35)"
+        self.live_indicator.setStyleSheet(f"color: {color}; {theme.css_semi(18)} background: transparent;")
 
     def init_ui(self):
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(40, 20, 40, 20)
-        main_layout.setSpacing(20)
-        
-        # --- Top Area: Video Feed (70%) ---
+        root = QVBoxLayout(self)
+        root.setContentsMargins(28, 18, 28, 18)
+        root.setSpacing(14)
+
+        self.model_tag = tag("--")
+        root.addWidget(page_header("Camera", "Live feed with helmet detection boxes drawn by the model.", self.model_tag))
+
+        body = QHBoxLayout()
+        body.setSpacing(14)
+
+        # Video
         self.video_container = QFrame()
-        self.video_container.setStyleSheet("background-color: #0A0A0E; border: 2px solid #20202A; border-radius: 12px;")
-        video_layout = QVBoxLayout(self.video_container)
-        video_layout.setContentsMargins(0, 0, 0, 0)
-        
-        self.video_label = QLabel("CAMERA FEED INITIALIZING...")
-        self.video_label.setProperty("class", "h2")
+        self.video_container.setProperty("class", "device")
+        vlay = QVBoxLayout(self.video_container)
+        vlay.setContentsMargins(0, 0, 0, 0)
+        self.video_label = QLabel("Starting camera...")
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        video_layout.addWidget(self.video_label)
-        
-        # Overlay LIVE indicator (using absolute positioning)
+        self.video_label.setProperty("class", "muted")
+        self.video_label.setMinimumSize(320, 240)
+        vlay.addWidget(self.video_label)
+
         self.live_indicator = QLabel("● LIVE")
-        self.live_indicator.setStyleSheet("color: #FF3333; font-size: 24px; font-weight: bold; background-color: transparent;")
+        self.live_indicator.setStyleSheet(f"color: {theme.BAD}; {theme.css_semi(18)} background: transparent;")
         self.live_indicator.setParent(self.video_container)
         self.live_indicator.adjustSize()
-        self.live_indicator.move(20, 20)
-        
-        main_layout.addWidget(self.video_container, stretch=7)
-        
-        # --- Bottom Area: Live Cards (30%) ---
-        cards_layout = QHBoxLayout()
-        cards_layout.setSpacing(20)
-        
-        # 1. Helmet Status
-        self.status_card = QFrame()
-        self.status_card.setProperty("class", "glass-card safe-card-active")
-        status_lay = QVBoxLayout(self.status_card)
-        status_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl1 = QLabel("Helmet Status")
-        lbl1.setProperty("class", "info-text")
-        lbl1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.live_indicator.move(18, 14)
+        body.addWidget(self.video_container, stretch=1)
+
+        # Side column
+        side = QVBoxLayout()
+        side.setSpacing(12)
+        side.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.status_card, slay = make_card("HELMET STATUS", "ok")
         self.status_val = QLabel("DETECTED")
-        self.status_val.setProperty("class", "safe-text")
-        self.status_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        status_lay.addWidget(lbl1)
-        status_lay.addWidget(self.status_val)
-        cards_layout.addWidget(self.status_card)
-        
-        def create_card(title, value_class):
-            card = QFrame()
-            card.setProperty("class", "glass-card")
-            lay = QVBoxLayout(card)
-            lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lbl_title = QLabel(title)
-            lbl_title.setProperty("class", "info-text")
-            lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lbl_val = QLabel("--")
-            lbl_val.setProperty("class", value_class)
-            lbl_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lay.addWidget(lbl_title)
-            lay.addWidget(lbl_val)
-            cards_layout.addWidget(card)
-            return lbl_val
-            
-        self.conf_val = create_card("Confidence", "h2")
-        self.fps_val = create_card("FPS", "h2")
-        self.infer_val = create_card("Inference Time", "h2")
-        
-        # Model Name Card
+        self.status_val.setStyleSheet(theme.css_display(38, theme.OK))
+        slay.addWidget(self.status_val)
+        self.status_note = QLabel("Rider protected")
+        self.status_note.setProperty("class", "muted")
+        slay.addWidget(self.status_note)
+        side.addWidget(self.status_card)
+
+        self.t_conf = MetricTile("CONFIDENCE", "%")
+        self.t_fps = MetricTile("FPS")
+        self.t_inf = MetricTile("INFERENCE TIME", "ms")
+        self.t_on = MetricTile("HELMET-ON FRAMES", "%")
+        for t in (self.t_conf, self.t_fps, self.t_inf, self.t_on):
+            side.addWidget(t)
+
+        model_card, mlay = make_card("CURRENT MODEL")
+        self.model_val = QLabel("YOLO")
+        self.model_val.setStyleSheet(theme.css_semi(22, theme.ACCENT))
+        mlay.addWidget(self.model_val)
+        side.addWidget(model_card)
+        side.addStretch()
+
+        side_wrap = QWidget()
+        side_wrap.setFixedWidth(300)
+        side_wrap.setLayout(side)
+        body.addWidget(side_wrap)
+        root.addLayout(body, stretch=1)
+
         model_name = "YOLO"
-        if self.ai_engine and hasattr(self.ai_engine, 'model_path'):
-            base = os.path.basename(self.ai_engine.model_path)
-            model_name = os.path.splitext(base)[0].upper()
-            
-        self.model_val = create_card("Current Model", "h2")
+        if self.ai_engine and hasattr(self.ai_engine, "model_path"):
+            model_name = os.path.splitext(os.path.basename(self.ai_engine.model_path))[0].upper()
         self.model_val.setText(model_name)
-        
-        main_layout.addLayout(cards_layout, stretch=2)
+        self.model_tag.setText(model_name)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        # Keep LIVE indicator at top-left
-        self.live_indicator.move(20, 20)
+        self.live_indicator.move(18, 14)
 
     @pyqtSlot(QImage)
     def update_image(self, qimage):
         pixmap = QPixmap.fromImage(qimage)
-        # Keep aspect ratio and fit inside the large container
-        scaled_pixmap = pixmap.scaled(self.video_container.width() - 4, 
-                                      self.video_container.height() - 4, 
-                                      Qt.AspectRatioMode.KeepAspectRatio, 
-                                      Qt.TransformationMode.SmoothTransformation)
-        self.video_label.setPixmap(scaled_pixmap)
+        scaled = pixmap.scaled(self.video_container.width() - 4, self.video_container.height() - 4,
+                               Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        self.video_label.setPixmap(scaled)
+        self.live_indicator.raise_()
 
     @pyqtSlot(dict)
     def update_stats(self, stats):
-        helmet_detected = stats.get("helmet_detected", False)
-        if helmet_detected:
-            self.status_card.setProperty("class", "glass-card safe-card-active")
-            self.status_val.setText("DETECTED")
-            self.status_val.setProperty("class", "safe-text")
-        else:
-            self.status_card.setProperty("class", "glass-card alert-card-active")
-            self.status_val.setText("NOT DETECTED")
-            self.status_val.setProperty("class", "alert-text")
-            
-        # Ensure stylesheet refreshes dynamically
-        self.status_card.style().unpolish(self.status_card)
-        self.status_card.style().polish(self.status_card)
-        self.status_val.style().unpolish(self.status_val)
-        self.status_val.style().polish(self.status_val)
-            
-        self.fps_val.setText(f"{stats.get('fps', 0):.1f}")
-        self.infer_val.setText(f"{stats.get('inference_time', 0):.1f} ms")
-        self.conf_val.setText(f"{stats.get('confidence', 0)*100:.1f}%")
+        helmet = stats.get("helmet_detected", False)
+        self.frames += 1
+        if helmet:
+            self.helmet_frames += 1
+        state = "ok" if helmet else "bad"
+        col = theme.OK if helmet else theme.BAD
+        self.status_card.setProperty("state", state)
+        repolish(self.status_card)
+        self.status_val.setText("DETECTED" if helmet else "NOT DETECTED")
+        self.status_val.setStyleSheet(theme.css_display(38, col))
+        self.status_note.setText("Rider protected" if helmet else "Engine lock may engage")
+
+        fps = stats.get("fps", 0)
+        inf = stats.get("inference_time", 0)
+        conf = stats.get("confidence", 0) * 100
+        on = self.helmet_frames / max(1, self.frames) * 100
+        self.t_conf.set(f"{conf:.0f}", conf / 100, theme.ACCENT)
+        self.t_fps.set(f"{fps:.1f}", fps / 60, theme.OK)
+        self.t_inf.set(f"{inf:.0f}", min(1.0, inf / 200), theme.WARN)
+        self.t_on.set(f"{on:.0f}", on / 100, theme.OK if on >= 80 else theme.WARN)

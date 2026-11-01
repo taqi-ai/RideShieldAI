@@ -66,7 +66,8 @@ class AlertSystem(QObject):
         if self.main_window and hasattr(self.main_window, 'latest_image') and self.main_window.latest_image:
             import os
             from datetime import datetime
-            captures_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "assets", "captures"))
+            from src.paths import user_file
+            captures_dir = os.path.abspath(user_file("assets", "captures"))
             os.makedirs(captures_dir, exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             screenshot_path = os.path.join(captures_dir, f"alert_{timestamp}.jpg")
